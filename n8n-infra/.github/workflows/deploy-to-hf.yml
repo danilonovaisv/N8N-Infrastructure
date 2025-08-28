@@ -50,14 +50,15 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_ID: ${{ secrets.HF_SPACE_ID }}
         run: |
-          python3 - <<'PY'
+          echo "
 import os
 from huggingface_hub import HfApi
 
-token = os.environ["HF_TOKEN"]
-space = os.environ["HF_SPACE_ID"]
+token = os.environ['HF_TOKEN']
+space = os.environ['HF_SPACE_ID']
 api = HfApi(token=token)
 api.restart_space(repo_id=space)
-print(f"Restart requested for Space: {space}")
-PY
+print(f'Restart requested for Space: {space}')
+" > restart_space.py
+          python3 restart_space.py
 

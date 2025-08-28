@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
@@ -27,3 +29,11 @@ jobs:
           HF_SPACE_REPO="https://huggingface.co/spaces/danilonovais/n8n-dan"
           git remote add hf "https://user:${HF_TOKEN}@${HF_SPACE_REPO#https://}"
           git push hf HEAD:main --force
+      - name: Trigger Space build
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: danilonovais/n8n-dan
+        run: |
+          curl -X POST \
+            -H "Authorization: Bears " \
+            https://huggingface.co/api/spaces//build

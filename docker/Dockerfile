@@ -2,8 +2,10 @@
 FROM n8nio/n8n:1.108.2
 
 # Hugging Face Spaces injects $PORT; n8n should listen on it
-ENV N8N_PORT=$PORT
-ENV N8N_PROTOCOL=http
+ARG PORT=6543
+ARG WEBHOOK_URL=https://danilonovais-n8n-dan.hf.space
+ENV PORT=$PORT
+ENV WEBHOOK_URL=$WEBHOOK_URL
 # Public URL (important for webhooks behind HF proxy)
 ENV WEBHOOK_URL=${WEBHOOK_URL}
 

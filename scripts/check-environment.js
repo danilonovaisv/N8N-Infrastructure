@@ -66,7 +66,7 @@ function main() {
     log('red', '❌ Docker is not available');
     log('info', '📦 Please install Docker to run this application locally');
     log('info', '🔗 Visit: https://docs.docker.com/get-docker/');
-    process.exit(1);
+    return;
   }
   
   if (!hasEnvFile) {

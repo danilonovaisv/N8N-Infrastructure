@@ -25,9 +25,9 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # TODO: replace with your Space path
-          HF_SPACE_REPO="https://huggingface.co/spaces/danilonovais/n8n-dan"
-          git remote add hf "https://user:${HF_TOKEN}@${HF_SPACE_REPO#https://}"
+          # The --force flag is used to overwrite the remote repository.
+          # This is common for deploying to Hugging Face Spaces, but use with caution.
+          git remote add hf "https://user:${HF_TOKEN}@huggingface.co/spaces/${{ secrets.HF_SPACE_REPO }}"
           git push hf HEAD:main --force
       - name: Trigger Space build
         env:

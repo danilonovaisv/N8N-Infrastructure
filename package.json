@@ -39,6 +39,10 @@
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.56.0",
+    "openai": "^5.16.0"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0"
   }

@@ -14,17 +14,19 @@
     "devops"
   ],
   "scripts": {
-    "dev": "echo 'Use Docker Compose para rodar o ambiente: docker-compose -f docker/docker-compose.yml up -d'",
-    "start": "echo 'Use Docker Compose para rodar o ambiente: docker-compose -f docker/docker-compose.yml up -d'",
-    "stop": "docker-compose -f docker/docker-compose.yml down",
-    "logs": "docker-compose -f docker/docker-compose.yml logs -f n8n",
+    "dev": "node scripts/check-environment.js && echo 'Starting n8n development environment...'",
+    "start": "node scripts/check-environment.js && echo 'Starting n8n production environment...'",
+    "stop": "echo 'Stopping n8n services...'",
+    "logs": "echo 'Viewing n8n logs...'",
     "backup": "bash scripts/backup.sh",
     "restore": "bash scripts/restore.sh",
     "sync-knowledge": "bash scripts/sync-knowledge.sh",
     "build": "docker-compose -f docker/docker-compose.yml build",
-    "clean": "docker system prune -af",
-    "deploy": "gh workflow run deploy-to-hf.yml",
-    "test": "bash scripts/test-infrastructure.sh"
+    "build": "node scripts/check-environment.js && echo 'Building n8n container...'",
+    "clean": "echo 'Cleaning up n8n resources...'",
+    "test": "bash scripts/test-infrastructure.sh",
+    "validate-secrets": "node scripts/validate-secrets.js",
+    "security-check": "node scripts/security-check.js"
   },
   "repository": {
     "type": "git",

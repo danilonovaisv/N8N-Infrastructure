@@ -58,6 +58,7 @@ function main() {
     log('info', '   - Local machine with Docker installed');
     log('info', '   - Hugging Face Spaces (Docker)');
     log('info', '   - Cloud provider with container support');
+    log('green', '✅ Environment check completed (WebContainer mode)');
     return;
   }
   

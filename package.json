@@ -14,7 +14,7 @@
     "devops"
   ],
   "scripts": {
-    "dev": "node scripts/check-environment.js && echo 'Starting n8n development environment...'",
+    "dev": "node scripts/check-environment.js && echo 'Environment check completed. In WebContainer, use deployment workflows for full functionality.'",
     "start": "node scripts/check-environment.js && echo 'Starting n8n production environment...'",
     "stop": "echo 'Stopping n8n services...'",
     "logs": "echo 'Viewing n8n logs...'",

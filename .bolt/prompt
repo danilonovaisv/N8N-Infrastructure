@@ -1,0 +1,89 @@
+I need a DevOps/Infra repository with:
+
+Tech Stack:
+- Containerization: Docker & Docker Compose
+- Orchestration: Hugging Face Spaces (Docker build)
+- Database: Supabase (Postgres with SSL required)
+- Integrations: GitHub, Google Cloud CLI, Vertex AI, LangChain, Community Nodes
+- AI Features: Vector Store, AI Agents, AI Assistant, LangChain pipelines
+- Automation: n8n (self-hosted Space), CI/CD with GitHub Actions
+
+Core Features:
+- Infrastructure as code for n8n running on Hugging Face Spaces
+- Supabase Postgres as database backend (SSL enforced)
+- Secure secrets injection (HF Space → environment variables)
+- CI/CD pipeline that updates Space from GitHub repo
+- Sync workflows via n8n API and export/backup into GitHub
+- Integration with multiple GitHub repos as Knowledge Base:
+  - https://github.com/danilonovaisv/CHATGPT-knowledge-base/tree/main/projects/n8n
+  - https://github.com/danilonovaisv/CHATGPT-knowledge-base/tree/main/projects/videos-e-animacoes
+  - https://github.com/danilonovaisv/CHATGPT-knowledge-base/tree/main/projects/midjorney-prompt
+- Vector database integration to store knowledge embeddings for workflows
+- Built-in nodes + community nodes for LangChain, Google APIs, Vertex AI
+
+Start with the following repository structure:
+
+/n8n-infra
+  /docker
+    Dockerfile (pin n8n version, ENV configs)
+    docker-compose.yml (services: n8n, supabase connection, vector store)
+  /config
+    .env.example (template for secrets: DB_HOST, DB_USER, DB_PASS, ENCRYPTION_KEY, JWT_SECRET, WEBHOOK_URL, etc.)
+    credentials/ (to store API keys and OAuth tokens)
+  /workflows
+    backup/ (exported workflows JSON)
+  /knowledge
+    n8n/ (mirror from projects/n8n)
+    videos-e-animacoes/ (mirror from repo)
+    midjourney-prompt/ (mirror from repo)
+  /scripts
+    backup.sh (pg_dump for Supabase, workflow export)
+    restore.sh (restore db)
+    sync-knowledge.sh (pull repos, upsert into DB/vector store)
+  /github
+    workflows/
+      deploy-to-hf.yml (GitHub Action: build & push image to HF Space)
+      backup-workflows.yml (GitHub Action: export workflows via API nightly)
+      sync-knowledge.yml (GitHub Action: pull knowledge repos and update DB/vector store)
+  README.md (instructions: how to deploy, secrets, CI/CD, rollback strategy)
+
+Configuration & Integrations:
+- Dockerfile pinned to a specific n8n version (no `latest`)
+- Docker Compose with service for n8n + supabase connector + vector DB (like pgvector or chroma)
+- GitHub Actions for CI/CD:
+  - build image
+  - push to Hugging Face Space
+  - trigger rebuild
+- Backup workflow:
+  - pg_dump from Supabase
+  - export workflows from n8n API
+- Sync job:
+  - clone repos from GitHub knowledge base
+  - ingest JSON/MD into vector DB
+- Integrate LangChain + AI Assistant via community nodes
+- Configure built-in nodes for Google/Vertex AI
+- Add CLI tools for Google Cloud
+
+Please leave placeholders for variables/secrets in .env.example:
+- N8N_ENCRYPTION_KEY=
+- N8N_USER_MANAGEMENT_JWT_SECRET=
+- DB_TYPE=postgresdb
+- DB_POSTGRESDB_HOST=
+- DB_POSTGRESDB_PORT=5432
+- DB_POSTGRESDB_DATABASE=
+- DB_POSTGRESDB_USER=
+- DB_POSTGRESDB_PASSWORD=
+- DB_POSTGRESDB_SSL=true
+- WEBHOOK_URL=
+- HF_TOKEN=
+- GITHUB_TOKEN=
+- GOOGLE_PROJECT_ID=
+- GOOGLE_CREDENTIALS_PATH=
+
+Document all steps in README with:
+- How to deploy locally with Docker Compose
+- How to deploy on Hugging Face Spaces
+- How to configure Supabase
+- How to run backups & restores
+- How to integrate workflows with LangChain/Agents
+- How to keep knowledge repos synced

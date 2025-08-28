@@ -5,18 +5,21 @@ A comprehensive, production-ready infrastructure setup for deploying n8n automat
 ## 🚀 Features
 
 ### Core Platform
+
 - **n8n v1.17.1**: Self-hosted workflow automation platform
 - **Hugging Face Spaces**: Docker-based deployment with automatic scaling
 - **Supabase PostgreSQL**: SSL-encrypted database with pgvector extension
 - **ChromaDB**: Vector store for embeddings and AI-powered search
 
 ### AI & Automation
+
 - **LangChain Integration**: Advanced AI workflow capabilities
 - **Multi-Model Support**: OpenAI GPT, Anthropic Claude, Google Vertex AI
 - **Vector Knowledge Base**: Automated content ingestion with embeddings
 - **Community Nodes**: Extended functionality with custom AI nodes
 
 ### DevOps & Monitoring
+
 - **GitHub Actions CI/CD**: Automated deployment and maintenance
 - **Automated Backups**: Daily workflow and configuration backups
 - **Knowledge Sync**: Multi-repository content synchronization
@@ -100,13 +103,14 @@ gh workflow run deploy-to-hf.yml
 ### Supabase Configuration
 
 1. **Create Supabase Project**:
+
    ```sql
    -- Enable pgvector extension
    CREATE EXTENSION IF NOT EXISTS vector;
-   
+
    -- Create knowledge base schema
    CREATE SCHEMA IF NOT EXISTS knowledge;
-   
+
    -- Create embeddings table
    CREATE TABLE knowledge.embeddings (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -118,23 +122,24 @@ gh workflow run deploy-to-hf.yml
      created_at TIMESTAMPTZ DEFAULT NOW(),
      updated_at TIMESTAMPTZ DEFAULT NOW()
    );
-   
+
    -- Create indexes for performance
    CREATE INDEX IF NOT EXISTS idx_embeddings_collection ON knowledge.embeddings(collection_name);
    CREATE INDEX IF NOT EXISTS idx_embeddings_content_id ON knowledge.embeddings(content_id);
-   CREATE INDEX IF NOT EXISTS idx_embeddings_vector ON knowledge.embeddings 
+   CREATE INDEX IF NOT EXISTS idx_embeddings_vector ON knowledge.embeddings
    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
    ```
 
 2. **Configure Row Level Security**:
+
    ```sql
    -- Enable RLS
    ALTER TABLE knowledge.embeddings ENABLE ROW LEVEL SECURITY;
-   
+
    -- Allow authenticated users to read embeddings
    CREATE POLICY "Users can read embeddings" ON knowledge.embeddings
      FOR SELECT TO authenticated USING (true);
-   
+
    -- Allow service role to manage embeddings
    CREATE POLICY "Service role can manage embeddings" ON knowledge.embeddings
      FOR ALL TO service_role USING (true);
@@ -193,7 +198,7 @@ docker-compose -f docker/docker-compose.yml restart n8n
 The system automatically syncs content from these repositories:
 
 - **n8n Knowledge**: `/projects/n8n` - Workflow examples and best practices
-- **Video & Animation**: `/projects/videos-e-animacoes` - Multimedia processing guides  
+- **Video & Animation**: `/projects/videos-e-animacoes` - Multimedia processing guides
 - **Midjourney Prompts**: `/projects/midjorney-prompt` - AI art generation prompts
 
 ### Manual Knowledge Sync
@@ -225,6 +230,7 @@ Query the knowledge base in n8n workflows:
 ### Automated Backups
 
 Daily backups include:
+
 - All n8n workflows (exported as JSON)
 - Encrypted credentials
 - Database schema
@@ -268,12 +274,13 @@ curl http://localhost:8000/api/v1/heartbeat
 ### Performance Tuning
 
 **Database Optimization**:
+
 ```sql
 -- Monitor query performance
-SELECT query, mean_exec_time, calls 
-FROM pg_stat_statements 
-WHERE query LIKE '%n8n%' 
-ORDER BY mean_exec_time DESC 
+SELECT query, mean_exec_time, calls
+FROM pg_stat_statements
+WHERE query LIKE '%n8n%'
+ORDER BY mean_exec_time DESC
 LIMIT 10;
 
 -- Optimize vector searches
@@ -281,6 +288,7 @@ SET ivfflat.probes = 10;
 ```
 
 **Container Resources**:
+
 ```yaml
 # docker-compose.yml resource limits
 services:
@@ -288,10 +296,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
+          cpus: "2.0"
           memory: 4G
         reservations:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 2G
 ```
 
@@ -327,6 +335,7 @@ chmod 600 config/credentials/*
 ### Common Issues
 
 **Connection Problems**:
+
 ```bash
 # Test database connection
 docker exec n8n-automation psql "$DB_POSTGRESDB_HOST" -U "$DB_POSTGRESDB_USER" -c "\l"
@@ -339,6 +348,7 @@ curl -I "$WEBHOOK_URL/healthz"
 ```
 
 **Deployment Issues**:
+
 ```bash
 # Check Hugging Face Space status
 curl -I "https://huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME"
@@ -349,6 +359,7 @@ gh run view [run-id] --log
 ```
 
 **Knowledge Sync Problems**:
+
 ```bash
 # Manual knowledge sync debug
 ./scripts/sync-knowledge.sh
@@ -366,16 +377,18 @@ with open('knowledge/n8n/n8n_embeddings.json') as f:
 ### Recovery Procedures
 
 **Emergency Restore**:
+
 1. Stop all services: `docker-compose down`
 2. Restore from latest backup: `./scripts/restore.sh [backup-name]`
 3. Restart services: `docker-compose up -d`
 4. Verify functionality: Access web interface
 
 **Database Recovery**:
+
 ```sql
 -- Check database integrity
-SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del 
-FROM pg_stat_user_tables 
+SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del
+FROM pg_stat_user_tables
 WHERE schemaname = 'public';
 
 -- Rebuild vector indexes if needed
@@ -455,4 +468,28 @@ This project is licensed under the Apache License 2.0 - see the LICENSE file for
 
 ---
 
-*Built with ❤️ for the n8n automation community*
+_Built with ❤️ for the n8n automation community_
+
+### ChromaDB
+
+ChromaDB é utilizado como vector store para armazenar embeddings e permitir buscas semânticas avançadas nos fluxos de trabalho do n8n.
+
+#### Configuração
+
+1. **Obtenha seu token de autenticação (API Key) no painel do Chroma Cloud**.
+2. No arquivo `.env`, adicione as variáveis:
+
+   ```dotenv
+   CHROMA_AUTH_TOKEN=ck-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   CHROMA_HOST=api.chroma.com
+   CHROMA_PORT=443
+   ```
+
+3. Certifique-se de que o serviço Chroma está acessível e que o token está correto.
+
+4. Para uso local, ajuste `CHROMA_HOST` para `localhost` e `CHROMA_PORT` para a porta configurada.
+
+#### Referências
+
+- [Documentação ChromaDB](https://docs.trychroma.com/)
+- [Como gerar API Key no Chroma Cloud](https://docs.trychroma.com/cloud)

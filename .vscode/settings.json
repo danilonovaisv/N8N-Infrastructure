@@ -1,3 +1,10 @@
 {
-  "DockerRun.DisableDockerrc": true
+  "DockerRun.DisableDockerrc": true,
+  "spellright.language": [],
+  "spellright.documentTypes": ["markdown", "latex", "plaintext"],
+  "spellright.parserByClass": {
+    "code-runner-output": {
+      "parser": "markdown"
+    }
+  }
 }

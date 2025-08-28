@@ -1,56 +1,39 @@
-# Production-ready n8n Dockerfile for Hugging Face Spaces
-FROM n8nio/n8n:1.17.1
+# Pin the n8n version for predictable upgrades/rollbacks
+FROM n8nio/n8n:1.108.2
 
-# Set environment for production
-ENV NODE_ENV=production
-ENV N8N_PORT=7860
-ENV N8N_LISTEN_ADDRESS=0.0.0.0
-ENV N8N_PROTOCOL=https
+# Hugging Face Spaces injects $PORT; n8n should listen on it
+ENV N8N_PORT=$PORT
+ENV N8N_PROTOCOL=http
+# Public URL (important for webhooks behind HF proxy)
+ENV WEBHOOK_URL=${WEBHOOK_URL}
+
+# Execution & retention (production-friendly defaults)
+ENV EXECUTIONS_MODE=regular
+ENV EXECUTIONS_DATA_SAVE_ON_ERROR=all
+ENV EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+ENV EXECUTIONS_DATA_PRUNE=true
+ENV EXECUTIONS_DATA_MAX_AGE=336
+ENV QUEUE_BULL_REDIS_DISABLED=true
+
+# Health/metrics
 ENV N8N_METRICS=true
-ENV N8N_LOG_LEVEL=info
-ENV N8N_LOG_OUTPUT=console
-ENV EXECUTIONS_MODE=queue
-ENV N8N_DISABLE_UI=false
+ENV QUEUE_HEALTH_CHECK_ACTIVE=true
 
-# Create app user for security
-USER root
+# Database (set via Secrets in HF Space)
+# ENV DB_TYPE=postgresdb
+# ENV DB_POSTGRESDB_HOST=
+# ENV DB_POSTGRESDB_PORT=5432
+# ENV DB_POSTGRESDB_DATABASE=
+# ENV DB_POSTGRESDB_USER=
+# ENV DB_POSTGRESDB_PASSWORD=
+# ENV DB_POSTGRESDB_SCHEMA=public
+# ENV DB_POSTGRESDB_SSL=true
+# ENV DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false
 
-# Install additional dependencies for AI and automation
-RUN apk add --no-cache \
-    curl \
-    git \
-    python3 \
-    py3-pip \
-    postgresql-client \
-    && pip3 install --no-cache-dir \
-    langchain \
-    chromadb \
-    sentence-transformers
-
-# Create necessary directories
-RUN mkdir -p /home/node/.n8n/custom \
-    && mkdir -p /home/node/.n8n/nodes \
-    && mkdir -p /home/node/.n8n/credentials \
-    && mkdir -p /home/node/knowledge
-
-# Copy custom configurations
-COPY config/custom-nodes.json /home/node/.n8n/custom/
-COPY knowledge/ /home/node/knowledge/
-
-# Set proper permissions
-RUN chown -R node:node /home/node/.n8n \
-    && chown -R node:node /home/node/knowledge \
-    && chmod +x /home/node/knowledge/sync-*.sh
-
-# Switch back to node user
-USER node
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:7860/healthz || exit 1
-
-# Expose port for Hugging Face Spaces
-EXPOSE 7860
-
-# Start n8n
-CMD ["n8n", "start"]
+# Security
+# ENV N8N_ENCRYPTION_KEY=
+# ENV N8N_USER_MANAGEMENT_JWT_SECRET=
+# Optional: protect UI with Basic Auth
+# ENV N8N_BASIC_AUTH_ACTIVE=true
+# ENV N8N_BASIC_AUTH_USER=
+# ENV N8N_BASIC_AUTH_PASSWORD=

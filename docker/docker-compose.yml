@@ -1,101 +1,33 @@
-version: '3.8'
-
+version: "3.9"
 services:
   n8n:
-    build: 
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: n8n-automation
-    restart: unless-stopped
+    image: n8nio/n8n:1.108.2
+    container_name: n8n-local
     ports:
-      - "7860:7860"
+      - "5678:5678"
     environment:
-      # Core Configuration
-      - NODE_ENV=production
-      - N8N_PORT=7860
-      - N8N_LISTEN_ADDRESS=0.0.0.0
-      - N8N_PROTOCOL=https
-      - N8N_HOST=${N8N_HOST:-localhost}
-      
-      # Security
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=${DB_HOST}
+      - DB_POSTGRESDB_PORT=${DB_PORT}
+      - DB_POSTGRESDB_DATABASE=${DB_NAME}
+      - DB_POSTGRESDB_USER=${DB_USER}
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=public
+      - DB_POSTGRESDB_SSL=true
+      - DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false
+      - EXECUTIONS_MODE=regular
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=336
+      - N8N_METRICS=true
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
-      
-      # Database Configuration
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=${DB_POSTGRESDB_HOST}
-      - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT:-5432}
-      - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE}
-      - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER}
-      - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD}
-      - DB_POSTGRESDB_SSL=true
-      
-      # Webhooks and External Access
-      - WEBHOOK_URL=${WEBHOOK_URL}
-      - N8N_EDITOR_BASE_URL=${WEBHOOK_URL}
-      
-      # AI and External Integrations
-      - GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID}
-      - GOOGLE_CREDENTIALS_PATH=${GOOGLE_CREDENTIALS_PATH}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      
-      # Performance
-      - EXECUTIONS_MODE=queue
-      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
-      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
-      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true
-      
-      # Logging and Monitoring
-      - N8N_LOG_LEVEL=info
-      - N8N_LOG_OUTPUT=console
-      - N8N_METRICS=true
-      
     volumes:
-      - n8n_data:/home/node/.n8n
-      - ./knowledge:/home/node/knowledge:ro
-      - ./config/credentials:/home/node/.n8n/credentials:ro
-      - ./workflows/backup:/home/node/.n8n/backup
-    
-    networks:
-      - n8n-network
-    
-    depends_on:
-      - vector-store
-      - backup-service
-
-  vector-store:
-    image: chromadb/chroma:latest
-    container_name: n8n-vector-store
+      - ./config:/config
+      - ./workflows:/workflows
     restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - CHROMA_SERVER_AUTHN_CREDENTIALS=${CHROMA_AUTH_TOKEN}
-      - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.token.TokenAuthServerProvider
-    volumes:
-      - vector_data:/chroma/chroma
-    networks:
-      - n8n-network
-
-  backup-service:
-    image: alpine:latest
-    container_name: n8n-backup
-    restart: "no"
-    command: /bin/sh -c "while true; do sleep 3600; done"
-    volumes:
-      - n8n_data:/backup/n8n:ro
-      - ./scripts:/scripts:ro
-      - ./workflows/backup:/backup/workflows
-    networks:
-      - n8n-network
-
-volumes:
-  n8n_data:
-    driver: local
-  vector_data:
-    driver: local
-
-networks:
-  n8n-network:
-    driver: bridge

@@ -5,7 +5,7 @@
   "private": true,
   "keywords": [
     "n8n",
-    "workflow-automation", 
+    "workflow-automation",
     "ai-integration",
     "langchain",
     "vector-database",
@@ -14,25 +14,25 @@
     "devops"
   ],
   "scripts": {
-    "dev": "echo 'Docker is not available in WebContainer environment. Please run this project on a system with Docker installed.'",
-    "start": "echo 'Docker is not available in WebContainer environment. Please run this project on a system with Docker installed.'",
-    "stop": "echo 'Docker is not available in WebContainer environment. Please run this project on a system with Docker installed.'",
-    "logs": "echo 'Docker is not available in WebContainer environment. Please run this project on a system with Docker installed.'",
+    "dev": "echo 'Use Docker Compose para rodar o ambiente: docker-compose -f docker/docker-compose.yml up -d'",
+    "start": "echo 'Use Docker Compose para rodar o ambiente: docker-compose -f docker/docker-compose.yml up -d'",
+    "stop": "docker-compose -f docker/docker-compose.yml down",
+    "logs": "docker-compose -f docker/docker-compose.yml logs -f n8n",
     "backup": "bash scripts/backup.sh",
     "restore": "bash scripts/restore.sh",
     "sync-knowledge": "bash scripts/sync-knowledge.sh",
-    "build": "echo 'Docker is not available in WebContainer environment. Please run this project on a system with Docker installed.'",
-    "clean": "echo 'Docker is not available in WebContainer environment. Please run this project on a system with Docker installed.'",
+    "build": "docker-compose -f docker/docker-compose.yml build",
+    "clean": "docker system prune -af",
     "deploy": "gh workflow run deploy-to-hf.yml",
     "test": "bash scripts/test-infrastructure.sh"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/n8n-infra.git"
+    "url": "https://github.com/danilonovaisv/n8n-infra.git"
   },
   "author": {
-    "name": "Your Name",
-    "email": "your-email@example.com"
+    "name": "Danilo Novais",
+    "email": "danilo_novais@yahoo.com.br"
   },
   "license": "Apache-2.0",
   "engines": {

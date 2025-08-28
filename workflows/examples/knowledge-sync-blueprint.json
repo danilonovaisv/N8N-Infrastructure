@@ -1,0 +1,76 @@
+{
+  "name": "Knowledge Sync (Webhook \u2192 Postgres)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "Start",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        0
+      ],
+      "webhookId": "replace-with-your-id",
+      "path": "knowledge-sync",
+      "httpMethod": "POST",
+      "responseMode": "onReceived",
+      "responseData": "allEntries"
+    },
+    {
+      "parameters": {
+        "functionCode": "items = items.map(item => ({ json: {\n  path: item.json.path,\n  title: item.json.title || item.json.path.split('/').pop(),\n  content: item.json.content,\n  hash: item.json.hash\n}}));\nreturn items;"
+      },
+      "id": "Map",
+      "name": "Map Fields",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO knowledge.documents(path, title, content, hash)\nVALUES(:path, :title, :content, :hash)\nON CONFLICT (path) DO UPDATE SET\n  title=EXCLUDED.title,\n  content=EXCLUDED.content,\n  hash=EXCLUDED.hash,\n  updated_at=now()\nRETURNING id;"
+      },
+      "id": "Postgres",
+      "name": "Postgres Upsert",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        60,
+        0
+      ],
+      "credentials": {
+        "postgres": "REPLACE_WITH_YOUR_CREDENTIAL"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Map Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Fields": {
+      "main": [
+        [
+          {
+            "node": "Postgres Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false
+}

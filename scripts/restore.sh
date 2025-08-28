@@ -11,6 +11,11 @@ echo "==> Restoring Postgres from ${DUMP_PATH} ..."
 echo "Make sure the n8n container is stopped before proceeding."
 read -p "Press enter to continue or Ctrl+C to cancel."
 
-export PGPASSWORD="${DB_PASSWORD}"
+# Use .pgpass for security to avoid exposing password in process list
+PGPASS_FILE=$(mktemp)
+trap 'rm -f "$PGPASS_FILE"' EXIT
+echo "${DB_HOST}:${DB_PORT}:${DB_NAME}:${DB_USER}:${DB_PASSWORD}" > "${PGPASS_FILE}"
+chmod 600 "${PGPASS_FILE}"
+export PGPASSFILE="${PGPASS_FILE}"
 pg_restore -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}" -d "${DB_NAME}" --clean --if-exists "${DUMP_PATH}"
 echo "==> Done."

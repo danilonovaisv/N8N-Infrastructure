@@ -19,6 +19,13 @@ ENV QUEUE_BULL_REDIS_DISABLED=true
 ENV N8N_METRICS=true
 ENV QUEUE_HEALTH_CHECK_ACTIVE=true
 
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f "http://localhost:${N8N_PORT:-5678}/healthz" || exit 1
+
+# Switch to non-root user for security
+USER node
+
 # Database (set via Secrets in HF Space)
 # ENV DB_TYPE=postgresdb
 # ENV DB_POSTGRESDB_HOST=

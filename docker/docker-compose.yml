@@ -31,3 +31,16 @@ services:
       - ./config:/config
       - ./workflows:/workflows
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "1.0"
+          memory: 2G
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

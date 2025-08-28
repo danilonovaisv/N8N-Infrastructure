@@ -1,0 +1,11 @@
+.git
+.github
+.vscode
+.DS_Store
+README.md
+LICENSE
+SECURITY.md
+knowledge/
+node_modules
+npm-debug.log
+config/.env

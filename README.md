@@ -1,95 +1,67 @@
 # n8n Infrastructure Repository
 
+> **⚠️ Security Warning**
+> A `.env` file with sensitive credentials was previously committed to this repository. Although the file has been removed, the credentials may still be present in the Git history. **It is crucial that you scrub the Git history of this repository and rotate all exposed secrets (API keys, database passwords, etc.) immediately.** Tools like [bfg-repo-cleaner](https://rtyley.github.io/bfg-repo-cleaner/) can help with this process.
+
 A comprehensive, production-ready infrastructure setup for deploying n8n automation platform on Hugging Face Spaces with AI integrations and automated knowledge management.
 
 ## 🚀 Features
 
 ### Core Platform
-
-- **n8n v1.17.1**: Self-hosted workflow automation platform
-- **Hugging Face Spaces**: Docker-based deployment with automatic scaling
-- **Supabase PostgreSQL**: SSL-encrypted database with pgvector extension
-- **ChromaDB**: Vector store for embeddings and AI-powered search
+- **n8n**: Self-hosted workflow automation platform.
+- **Hugging Face Spaces**: Docker-based deployment with automatic scaling.
+- **Supabase PostgreSQL**: SSL-encrypted database with pgvector extension.
+- **ChromaDB**: Vector store for embeddings and AI-powered search.
 
 ### AI & Automation
+- **LangChain Integration**: Advanced AI workflow capabilities.
+- **Multi-Model Support**: OpenAI GPT, Anthropic Claude, Google Vertex AI.
+- **Vector Knowledge Base**: Automated content ingestion with embeddings.
+- **Community Nodes**: Extended functionality with custom AI nodes.
 
-- **LangChain Integration**: Advanced AI workflow capabilities
-- **Multi-Model Support**: OpenAI GPT, Anthropic Claude, Google Vertex AI
-- **Vector Knowledge Base**: Automated content ingestion with embeddings
-- **Community Nodes**: Extended functionality with custom AI nodes
-
-### DevOps & Monitoring
-
-- **GitHub Actions CI/CD**: Automated deployment and maintenance
-- **Automated Backups**: Daily workflow and configuration backups
-- **Knowledge Sync**: Multi-repository content synchronization
-- **Health Monitoring**: Container health checks and alerting
+### DevOps & Security
+- **GitHub Actions CI/CD**: Automated deployment and maintenance.
+- **Optimized Docker Setup**: Non-root user and healthchecks for enhanced security and reliability.
+- **Automated Full Backups**: Daily backups of database, workflows, and credentials.
+- **Database Security**: Row Level Security (RLS) enabled by default.
+- **Knowledge Sync**: Multi-repository content synchronization.
 
 ## 📋 Prerequisites
 
-Before setting up the infrastructure, ensure you have:
-
-1. **GitHub Account** with repository access
-2. **Hugging Face Account** with Spaces access
-3. **Supabase Account** with PostgreSQL database
-4. **Git** and **Docker** installed locally
-
-### Required Secrets
-
-Configure these secrets in your GitHub repository settings:
-
-```bash
-# Hugging Face
-HF_USERNAME=your-huggingface-username
-HF_TOKEN=your-hf-token
-HF_SPACE_NAME=n8n-automation
-
-# Database
-DB_POSTGRESDB_HOST=your-project.supabase.co
-DB_POSTGRESDB_USER=postgres
-DB_POSTGRESDB_PASSWORD=your-database-password
-DB_POSTGRESDB_DATABASE=postgres
-
-# n8n Configuration
-N8N_ENCRYPTION_KEY=your-32-character-encryption-key
-N8N_USER_MANAGEMENT_JWT_SECRET=your-jwt-secret
-WEBHOOK_URL=https://your-username-n8n-automation.hf.space
-
-# AI Services (Optional)
-OPENAI_API_KEY=sk-your-openai-key
-ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
-GOOGLE_PROJECT_ID=your-gcp-project
-```
+- **GitHub Account**
+- **Hugging Face Account**
+- **Supabase Account**
+- **Git** and **Docker** installed locally
 
 ## 🛠️ Quick Start
 
 ### 1. Repository Setup
-
 ```bash
 # Clone the repository
 git clone https://github.com/your-username/n8n-infra.git
 cd n8n-infra
 
-# Create environment configuration
-cp config/.env.example .env
-# Edit .env with your actual values
+# Create your local environment configuration from the example
+cp config/.env.example config/.env
+
+# Edit config/.env with your actual values.
+# NEVER commit this file to Git.
 ```
 
 ### 2. Local Development
-
 ```bash
 # Start the full stack locally
-docker-compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # Check service status
-docker-compose -f docker/docker-compose.yml ps
+docker compose -f docker/docker-compose.yml ps
 
 # View logs
-docker-compose -f docker/docker-compose.yml logs -f n8n
+docker compose -f docker/docker-compose.yml logs -f n8n
 ```
 
 ### 3. Hugging Face Deployment
-
+The repository is configured to automatically deploy to a Hugging Face Space on every push to the `main` branch.
 ```bash
 # Trigger deployment via GitHub Actions
 git push origin main
@@ -99,196 +71,77 @@ gh workflow run deploy-to-hf.yml
 ```
 
 ## 📊 Database Setup
+The authoritative schema is defined in `supabase/schema.sql`. It is recommended to apply this schema to your Supabase project via the Supabase UI SQL Editor or by using Supabase migrations.
 
-### Supabase Configuration
-
-1. **Create Supabase Project**:
-
-   ```sql
-   -- Enable pgvector extension
-   CREATE EXTENSION IF NOT EXISTS vector;
-
-   -- Create knowledge base schema
-   CREATE SCHEMA IF NOT EXISTS knowledge;
-
-   -- Create embeddings table
-   CREATE TABLE knowledge.embeddings (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     content_id TEXT NOT NULL,
-     collection_name TEXT NOT NULL,
-     content TEXT NOT NULL,
-     embedding VECTOR(384),
-     metadata JSONB DEFAULT '{}',
-     created_at TIMESTAMPTZ DEFAULT NOW(),
-     updated_at TIMESTAMPTZ DEFAULT NOW()
-   );
-
-   -- Create indexes for performance
-   CREATE INDEX IF NOT EXISTS idx_embeddings_collection ON knowledge.embeddings(collection_name);
-   CREATE INDEX IF NOT EXISTS idx_embeddings_content_id ON knowledge.embeddings(content_id);
-   CREATE INDEX IF NOT EXISTS idx_embeddings_vector ON knowledge.embeddings
-   USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-   ```
-
-2. **Configure Row Level Security**:
-
-   ```sql
-   -- Enable RLS
-   ALTER TABLE knowledge.embeddings ENABLE ROW LEVEL SECURITY;
-
-   -- Allow authenticated users to read embeddings
-   CREATE POLICY "Users can read embeddings" ON knowledge.embeddings
-     FOR SELECT TO authenticated USING (true);
-
-   -- Allow service role to manage embeddings
-   CREATE POLICY "Service role can manage embeddings" ON knowledge.embeddings
-     FOR ALL TO service_role USING (true);
-   ```
-
-## 🤖 AI Integration Guide
-
-### LangChain Workflows
-
-The platform supports advanced LangChain workflows:
-
-```javascript
-// Example: Knowledge-based Q&A workflow
-{
-  "nodes": [
-    {
-      "name": "Vector Search",
-      "type": "n8n-nodes-vector-store",
-      "parameters": {
-        "operation": "similarity_search",
-        "query": "{{ $json.question }}",
-        "collection": "n8n",
-        "top_k": 5
-      }
-    },
-    {
-      "name": "LangChain QA",
-      "type": "@n8n/n8n-nodes-langchain",
-      "parameters": {
-        "chain_type": "question_answering",
-        "context": "{{ $json.vector_results }}",
-        "question": "{{ $json.question }}"
-      }
-    }
-  ]
-}
-```
-
-### Custom AI Nodes
-
-Install additional AI nodes:
-
-```bash
-# Install in running container
-docker exec n8n-automation npm install n8n-nodes-google-vertex-ai
-docker exec n8n-automation npm install n8n-nodes-openai-advanced
-
-# Restart to load new nodes
-docker-compose -f docker/docker-compose.yml restart n8n
-```
-
-## 🗄️ Knowledge Management
-
-### Automated Synchronization
-
-The system automatically syncs content from these repositories:
-
-- **n8n Knowledge**: `/projects/n8n` - Workflow examples and best practices
-- **Video & Animation**: `/projects/videos-e-animacoes` - Multimedia processing guides
-- **Midjourney Prompts**: `/projects/midjorney-prompt` - AI art generation prompts
-
-### Manual Knowledge Sync
-
-```bash
-# Sync specific collection
-./scripts/sync-knowledge.sh
-
-# Or trigger via GitHub Actions
-gh workflow run sync-knowledge.yml -f collections=n8n,midjourney-prompt
-```
-
-### Vector Search Setup
-
-Query the knowledge base in n8n workflows:
-
-```javascript
-// Vector similarity search node configuration
-{
-  "collection": "n8n",
-  "query": "How to create webhook workflows",
-  "top_k": 3,
-  "score_threshold": 0.7
-}
-```
+Key features of the schema include:
+- A `knowledge` schema to encapsulate all knowledge base tables.
+- `documents` and `embeddings` tables for storing content and its vector embeddings.
+- A `vector_l2_ops` index on the `embeddings` table for efficient similarity search.
+- **Row Level Security (RLS)** enabled on all tables to control data access. By default, data is public for reading, but only the `service_role` can write data.
 
 ## 💾 Backup & Recovery
 
 ### Automated Backups
-
-Daily backups include:
-
-- All n8n workflows (exported as JSON)
-- Encrypted credentials
-- Database schema
-- Knowledge base content
-- Vector embeddings
+The `.github/workflows/backup-workflows.yml` GitHub Action runs nightly to create a full backup of your n8n instance. Each backup is a `.tar.gz` archive that includes:
+- A full dump of the PostgreSQL database.
+- A JSON export of all your n8n workflows.
+- A copy of your `config` directory, which contains n8n credentials and settings.
 
 ### Manual Backup
-
+To create a backup manually, you can run the `backup.sh` script. This requires you to have the necessary environment variables set (see `config/.env.example`).
 ```bash
-# Create full backup
-./scripts/backup.sh custom-backup-name
+# Make sure the script is executable
+chmod +x scripts/backup.sh
 
-# List available backups
-ls workflows/backup/
-
-# Restore from backup
-./scripts/restore.sh n8n_backup_20240115_140230
+# Run the script
+./scripts/backup.sh
 ```
 
-### Backup Schedule
+### Restore from Backup
+To restore your n8n instance from a backup, use the `restore.sh` script.
 
-- **Daily**: Automated workflow backup at 2 AM UTC
-- **Weekly**: Full system backup including database
-- **On-demand**: Manual backups via GitHub Actions
+**Warning:** This process will overwrite your existing database and configuration.
+
+1.  **Stop your n8n container** to prevent data corruption.
+    ```bash
+    docker compose -f docker/docker-compose.yml stop n8n
+    ```
+2.  Run the `restore.sh` script, providing the path to your backup file.
+    ```bash
+    # Make sure the script is executable
+    chmod +x scripts/restore.sh
+
+    # Run the restore script
+    BACKUP_FILE=workflows/backup/n8n-backup-YYYYMMDD-HHMMSS.tar.gz ./scripts/restore.sh
+    ```
+3.  The script will guide you through the process. It will restore the database and the `config` directory.
+4.  For workflows, the script will provide a `restored_workflows_*.json` file. You will need to import this file manually via the n8n UI or by using the `n8n-cli`.
+5.  **Restart your n8n container.**
+    ```bash
+    docker compose -f docker/docker-compose.yml start n8n
+    ```
+
+## 🔒 Security
+This repository has been optimized with security in mind.
+
+- **Credential Management**: A `.gitignore` file is included to prevent committing sensitive files like `.env`. An example file `config/.env.example` is provided.
+- **Container Security**: The `Dockerfile` is configured to run n8n as a non-root user, reducing the container's attack surface.
+- **Database Security**: Row Level Security is enabled in the database schema (`supabase/schema.sql`).
+- **Secret Rotation**: As mentioned in the security warning, it is critical to rotate any secrets that may have been exposed in the Git history.
 
 ## 🔧 Maintenance
 
 ### Health Monitoring
-
 ```bash
-# Check container health
-docker-compose -f docker/docker-compose.yml ps
+# Check container health (includes a healthcheck)
+docker compose -f docker/docker-compose.yml ps
 
 # View application logs
-docker-compose -f docker/docker-compose.yml logs -f n8n
-
-# Monitor vector store
-curl http://localhost:8000/api/v1/heartbeat
+docker compose -f docker/docker-compose.yml logs -f n8n
 ```
 
 ### Performance Tuning
-
-**Database Optimization**:
-
-```sql
--- Monitor query performance
-SELECT query, mean_exec_time, calls
-FROM pg_stat_statements
-WHERE query LIKE '%n8n%'
-ORDER BY mean_exec_time DESC
-LIMIT 10;
-
--- Optimize vector searches
-SET ivfflat.probes = 10;
-```
-
-**Container Resources**:
-
+**Container Resources**: Resource limits are defined in `docker-compose.yml` to prevent resource exhaustion during local development.
 ```yaml
 # docker-compose.yml resource limits
 services:
@@ -303,193 +156,10 @@ services:
           memory: 2G
 ```
 
-## 🔒 Security
-
-### SSL Configuration
-
-- All database connections use SSL encryption
-- Webhook URLs must use HTTPS
-- Container communication over encrypted networks
-
-### Credential Management
-
-```bash
-# Credentials are encrypted by n8n
-# Store sensitive files in config/credentials/
-mkdir -p config/credentials
-echo '{}' > config/credentials/google-service-account.json
-
-# Set proper permissions
-chmod 600 config/credentials/*
-```
-
-### Environment Security
-
-- Never commit `.env` files
-- Use GitHub Secrets for sensitive data
-- Rotate encryption keys regularly
-- Enable Supabase RLS policies
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-**Connection Problems**:
-
-```bash
-# Test database connection
-docker exec n8n-automation psql "$DB_POSTGRESDB_HOST" -U "$DB_POSTGRESDB_USER" -c "\l"
-
-# Check n8n logs
-docker logs n8n-automation --tail 50
-
-# Verify webhook connectivity
-curl -I "$WEBHOOK_URL/healthz"
-```
-
-**Deployment Issues**:
-
-```bash
-# Check Hugging Face Space status
-curl -I "https://huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME"
-
-# View GitHub Actions logs
-gh run list --workflow=deploy-to-hf.yml
-gh run view [run-id] --log
-```
-
-**Knowledge Sync Problems**:
-
-```bash
-# Manual knowledge sync debug
-./scripts/sync-knowledge.sh
-echo $?  # Should return 0 for success
-
-# Check embedding generation
-python3 -c "
-import json
-with open('knowledge/n8n/n8n_embeddings.json') as f:
-    data = json.load(f)
-    print(f'Embeddings loaded: {len(data)} documents')
-"
-```
-
-### Recovery Procedures
-
-**Emergency Restore**:
-
-1. Stop all services: `docker-compose down`
-2. Restore from latest backup: `./scripts/restore.sh [backup-name]`
-3. Restart services: `docker-compose up -d`
-4. Verify functionality: Access web interface
-
-**Database Recovery**:
-
-```sql
--- Check database integrity
-SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del
-FROM pg_stat_user_tables
-WHERE schemaname = 'public';
-
--- Rebuild vector indexes if needed
-REINDEX INDEX idx_embeddings_vector;
-```
-
-## 📈 Scaling
-
-### Horizontal Scaling
-
-- Multiple n8n instances with queue mode
-- Load balancer configuration
-- Distributed vector store
-
-### Performance Monitoring
-
-- Enable n8n metrics: `N8N_METRICS=true`
-- Database query monitoring
-- Vector search performance tracking
-- Container resource utilization
-
 ## 🔄 CI/CD Pipeline
-
-### Workflow Triggers
-
-- **Push to main**: Automatic deployment
-- **Scheduled**: Daily backups and knowledge sync
-- **Manual**: On-demand operations via GitHub Actions
-
-### Pipeline Stages
-
-1. **Build**: Docker image creation and testing
-2. **Test**: Health checks and validation
-3. **Deploy**: Hugging Face Spaces deployment
-4. **Monitor**: Post-deployment verification
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/new-capability`
-3. Commit changes: `git commit -am 'Add new capability'`
-4. Push branch: `git push origin feature/new-capability`
-5. Submit pull request
-
-### Development Workflow
-
-```bash
-# Local development
-docker-compose -f docker/docker-compose.yml up --build
-
-# Run tests
-./scripts/test-infrastructure.sh
-
-# Deploy to staging
-gh workflow run deploy-to-hf.yml -f force_deploy=true
-```
-
-## 📞 Support
-
-- **Issues**: GitHub Issues
-- **Documentation**: [n8n Documentation](https://docs.n8n.io)
-- **Community**: [n8n Community](https://community.n8n.io)
-
-## 📄 License
-
-This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+The CI/CD pipelines are defined in the `.github/workflows` directory and are optimized for:
+- **Efficiency**: The backup workflow uses a pre-built Docker container, and the knowledge sync workflow uses dependency caching to speed up execution.
+- **Reliability**: The knowledge sync workflow uses `npm ci` for deterministic builds.
 
 ---
-
-**⚡ Pro Tips**:
-
-1. **Performance**: Use queue mode for high-volume workflows
-2. **Security**: Regular credential rotation and access reviews
-3. **Monitoring**: Set up alerts for failed workflows and system health
-4. **Backup**: Test restore procedures regularly
-5. **Knowledge**: Keep your knowledge base updated with latest best practices
-
----
-
-_Built with ❤️ for the n8n automation community_
-
-### ChromaDB
-
-ChromaDB é utilizado como vector store para armazenar embeddings e permitir buscas semânticas avançadas nos fluxos de trabalho do n8n.
-
-#### Configuração
-
-1. **Obtenha seu token de autenticação (API Key) no painel do Chroma Cloud**.
-2. No arquivo `.env`, adicione as variáveis:
-
-   ```dotenv
-   CHROMA_AUTH_TOKEN=ck-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-   CHROMA_HOST=api.chroma.com
-   CHROMA_PORT=443
-   ```
-
-3. Certifique-se de que o serviço Chroma está acessível e que o token está correto.
-
-4. Para uso local, ajuste `CHROMA_HOST` para `localhost` e `CHROMA_PORT` para a porta configurada.
-
-#### Referências
-
-- [Documentação ChromaDB](https://docs.trychroma.com/)
-- [Como gerar API Key no Chroma Cloud](https://docs.trychroma.com/cloud)
+_This README has been updated to reflect the infrastructure audit and optimization._

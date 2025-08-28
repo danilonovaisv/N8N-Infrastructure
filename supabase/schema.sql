@@ -30,3 +30,17 @@ create or replace view knowledge.searchable as
   select d.id, d.title, d.path, d.source_url, d.updated_at
   from knowledge.documents d
   order by d.updated_at desc;
+
+-- ==> RLS (Row Level Security)
+-- 1. Enable RLS
+alter table knowledge.documents enable row level security;
+alter table knowledge.embeddings enable row level security;
+
+-- 2. Create policies
+-- Allow public read access to all
+create policy "Allow public read access" on knowledge.documents for select using (true);
+create policy "Allow public read access" on knowledge.embeddings for select using (true);
+
+-- Allow service_role (server-side) to perform all actions
+create policy "Allow all for service_role" on knowledge.documents for all to service_role with check (true);
+create policy "Allow all for service_role" on knowledge.embeddings for all to service_role with check (true);

@@ -1,0 +1,10 @@
+#! kustomization.yaml
+# Generated code, do not edit
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - 0-docker-namespace.yaml
+    - default-network-policy.yaml
+    - n8n-deployment.yaml
+    - n8n-expose.yaml
+    - n8n-service.yaml

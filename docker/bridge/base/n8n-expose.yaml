@@ -1,0 +1,18 @@
+#! n8n-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: n8n
+    namespace: docker
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: n8n
+spec:
+    selector:
+        com.docker.compose.project: docker
+        com.docker.compose.service: n8n
+    ports:
+        - name: n8n-5678
+          port: 5678
+          targetPort: n8n-5678

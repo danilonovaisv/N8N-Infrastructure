@@ -1,0 +1,88 @@
+#! n8n-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: n8n
+    namespace: docker
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: n8n
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: docker
+            com.docker.compose.service: n8n
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: docker
+                com.docker.compose.service: n8n
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: unless-stopped
+            containers:
+                - name: n8n-local
+                  image: n8nio/n8n:1.108.2
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    - name: DB_POSTGRESDB_DATABASE
+                      value: ""
+                    - name: DB_POSTGRESDB_HOST
+                      value: ""
+                    - name: DB_POSTGRESDB_PASSWORD
+                      value: ""
+                    - name: DB_POSTGRESDB_PORT
+                      value: ""
+                    - name: DB_POSTGRESDB_SCHEMA
+                      value: "public"
+                    - name: DB_POSTGRESDB_SSL
+                      value: "true"
+                    - name: DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED
+                      value: "false"
+                    - name: DB_POSTGRESDB_USER
+                      value: ""
+                    - name: DB_TYPE
+                      value: "postgresdb"
+                    - name: EXECUTIONS_DATA_MAX_AGE
+                      value: "336"
+                    - name: EXECUTIONS_DATA_PRUNE
+                      value: "true"
+                    - name: EXECUTIONS_DATA_SAVE_ON_ERROR
+                      value: "all"
+                    - name: EXECUTIONS_DATA_SAVE_ON_SUCCESS
+                      value: "none"
+                    - name: EXECUTIONS_MODE
+                      value: "regular"
+                    - name: N8N_ENCRYPTION_KEY
+                      value: ""
+                    - name: N8N_METRICS
+                      value: "true"
+                    - name: N8N_PORT
+                      value: "5678"
+                    - name: N8N_PROTOCOL
+                      value: "http"
+                    - name: N8N_USER_MANAGEMENT_JWT_SECRET
+                      value: ""
+                    - name: QUEUE_HEALTH_CHECK_ACTIVE
+                      value: "true"
+                    - name: WEBHOOK_URL
+                      value: "http://localhost:5678/"
+                  ports:
+                    - name: n8n-5678
+                      containerPort: 5678
+                  volumeMounts:
+                    - name: config
+                      mountPath: /config
+                    - name: workflows
+                      mountPath: /workflows
+            volumes:
+                - name: config
+                  hostPath:
+                    path: /Users/danilonovais/N8N-Infrastructure/docker/config
+                - name: workflows
+                  hostPath:
+                    path: /Users/danilonovais/N8N-Infrastructure/docker/workflows

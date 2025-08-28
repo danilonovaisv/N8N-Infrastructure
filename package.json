@@ -1,0 +1,48 @@
+{
+  "name": "n8n-infrastructure",
+  "version": "1.0.0",
+  "description": "Production-ready n8n infrastructure with AI integrations and automated knowledge management",
+  "private": true,
+  "keywords": [
+    "n8n",
+    "workflow-automation", 
+    "ai-integration",
+    "langchain",
+    "vector-database",
+    "hugging-face",
+    "supabase",
+    "devops"
+  ],
+  "scripts": {
+    "dev": "docker compose -f docker/docker-compose.yml up --build",
+    "start": "docker compose -f docker/docker-compose.yml up -d",
+    "stop": "docker compose -f docker/docker-compose.yml down",
+    "logs": "docker compose -f docker/docker-compose.yml logs -f n8n",
+    "backup": "bash scripts/backup.sh",
+    "restore": "bash scripts/restore.sh",
+    "sync-knowledge": "bash scripts/sync-knowledge.sh",
+    "health-check": "curl -f http://localhost:7860/healthz",
+    "clean": "docker compose -f docker/docker-compose.yml down -v && docker system prune -f",
+    "deploy": "gh workflow run deploy-to-hf.yml",
+    "test": "bash scripts/test-infrastructure.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/n8n-infra.git"
+  },
+  "author": {
+    "name": "Your Name",
+    "email": "your-email@example.com"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "dependencies": {
+    "huggingface_hub": "^0.20.1"
+  }
+}

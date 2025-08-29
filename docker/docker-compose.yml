@@ -1,14 +1,12 @@
-version: "3.8"
-
 services:
   n8n:
     image: n8nio/n8n:1.53.1
-    container_name: n8n
+    container_name: N8N-Infrastructure
     restart: unless-stopped
     env_file:
       - ../config/.env
     ports:
-      - "5678:5678"
+      - "6543:6543"
     environment:
       # Force SSL for DB
       - DB_POSTGRESDB_SSL=true
@@ -19,13 +17,13 @@ services:
       - N8N_HOST=${N8N_HOST:-localhost}
       - N8N_PORT=${N8N_PORT:-5678}
       - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-      - WEBHOOK_URL=${WEBHOOK_URL}
+      - WEBHOOK_URL=${WEBHOOK_URL:-https://danilonovais-n8n-dan.hf.space}
     volumes:
       - n8n_data:/home/node/.n8n
       - ../workflows:/data/workflows:rw
       - ../knowledge:/data/knowledge:rw
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:5678/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:6543/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5

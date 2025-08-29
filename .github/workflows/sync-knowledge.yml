@@ -27,5 +27,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           KNOWLEDGE_REPO_URL: ${{ secrets.KNOWLEDGE_REPO_URL }}
           KNOWLEDGE_DIRS: ${{ secrets.KNOWLEDGE_DIRS }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_KNOWLEDGE_REPO }}
         run: |
           node scripts/sync-knowledge.mjs

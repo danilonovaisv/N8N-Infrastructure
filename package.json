@@ -21,6 +21,7 @@
     "backup": "bash scripts/backup.sh",
     "restore": "bash scripts/restore.sh",
     "sync-knowledge": "bash scripts/sync-knowledge.sh",
+    "build": "docker-compose -f docker/docker-compose.yml build",
     "build": "node scripts/check-environment.js && echo 'Building n8n container...'",
     "clean": "echo 'Cleaning up n8n resources...'",
     "test": "bash scripts/test-infrastructure.sh",
@@ -42,8 +43,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.56.0",
-    "openai": "^5.16.0",
-    "pip": "^0.0.1"
+    "openai": "^5.16.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0"

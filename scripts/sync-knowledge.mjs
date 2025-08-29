@@ -14,6 +14,7 @@ const {
   SUPABASE_SERVICE_ROLE_KEY,
   KNOWLEDGE_REPO_URL,
   KNOWLEDGE_DIRS = 'projects/n8n,projects/videos-e-animacoes,projects/midjorney-prompt',
+  GH_TOKEN,
 } = process.env;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !KNOWLEDGE_REPO_URL) {
@@ -40,7 +41,8 @@ function runCommand(command, args, options = {}) {
 const repoDir = path.join(workdir, 'CHATGPT-knowledge-base');
 if (!fs.existsSync(repoDir)) {
   console.log('Cloning KB repo...');
-  runCommand('git', ['clone', '--depth', '1', KNOWLEDGE_REPO_URL, repoDir]);
+  const repoUrl = GH_TOKEN ? KNOWLEDGE_REPO_URL.replace('https://', `https://x-access-token:${GH_TOKEN}@`) : KNOWLEDGE_REPO_URL;
+  runCommand('git', ['clone', '--depth', '1', repoUrl, repoDir]);
 } else {
   console.log('Pulling KB repo...');
   runCommand('git', ['pull'], { cwd: repoDir });

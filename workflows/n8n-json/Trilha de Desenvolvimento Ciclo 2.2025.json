@@ -1,0 +1,1612 @@
+{
+  "name": "Trilha de Desenvolvimento Ciclo 2.2025",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        384
+      ],
+      "id": "c0f2d6fb-4e0c-44e7-a6de-f698a7abbea9",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "Iy8r5xVQElHCpuP9",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -816,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "6798ce8c-8c90-4466-a7d3-056d8b7e95c4"
+    },
+    {
+      "parameters": {
+        "description": "Think about the requested topic using the tool. The tool will not obtain new information or alter the database, it will only append the reasoning to the log. Provide the response as a table, with each row containing one continuous text line that summarizes the reasoning in a clear and professional way."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        656,
+        512
+      ],
+      "id": "5787cfb6-dc08-4e74-8450-a819ddd92318",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dc66dd4a-9209-4790-b844-e19931accc39",
+              "name": "google_sheets_id",
+              "type": "string",
+              "value": "1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w"
+            },
+            {
+              "id": "56c8f20d-d9d9-4be7-ac2a-38df6ffdd722",
+              "name": "openai_api_key",
+              "type": "string",
+              "value": "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"
+            },
+            {
+              "id": "1e6aa98e-436a-47ff-a900-7d0b05fa752b",
+              "name": "Response _tone",
+              "value": "You are writing performance evaluation comments as if you were Danilo Novais Vilela, Creative Director at All Set Comunicação. Your answers must reflect Danilo’s authentic voice and professional identity.  Tone of Voice Characteristics \t•\tHuman & Reflective: Speak with sincerity and self-awareness, showing maturity in recognizing strengths and areas for growth. \t•\tProfessional but Accessible: Keep a professional tone without being overly formal; use clear and simple language. \t•\tCreative & Positive: Demonstrate optimism, creativity, and a constructive perspective, aligned with All Set’s values of empowering people, embracing ideas, and transforming realities. \t•\tGrounded in Examples: Refer to concrete situations, recent projects, or behaviors from the last 6 months to strengthen credibility. \t•\tBalanced: Start with strengths, then gently mention improvement opportunities, always with a growth mindset. \t•\tCollaborative: Show appreciation for teamwork, collective learning, and shared success.  How to Write Each Comment \t1.\tBegin with a recognition of strengths (“Over the past months, I was able to…” / “I noticed progress in…”). \t2.\tAdd a concrete example (projects, team contributions, results). \t3.\tClose with a next step or development perspective (“I want to deepen…”, “Next, I’ll focus on…”). \t4.\tKeep it concise: 3–5 sentences maximum.  Voice Example (Self-Evaluation – Problem Solving) “In the last semester, I contributed solutions that helped speed up project deliveries, especially by applying agile methods in design reviews. I feel I was able to combine creativity with practicality to overcome challenges. Moving forward, I want to further develop my ability to anticipate risks and prepare alternatives in advance.”",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "CONFIGURAÇÃO INICIAIS",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -576,
+        256
+      ],
+      "typeVersion": 3.4,
+      "id": "b78a1022-d325-41b7-92ca-981b3fb42b15",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a60cf09f-a23f-4e93-a402-dda537925852",
+              "name": "NOME DO AVALIADO",
+              "value": "Danilo Novais (autoavailiação)",
+              "type": "string"
+            },
+            {
+              "id": "68e091d9-dc23-4ba7-afea-e437e5370c5e",
+              "name": "row_number",
+              "value": "={{ $json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "25722151-9142-47a6-9a92-3f2e062df0ae",
+              "name": "Critério",
+              "value": "={{ $json['Critério'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2d29c502-bacb-48dd-b90c-2baed887355c",
+              "name": "Pergunta",
+              "value": "={{ $json.Pergunta }}",
+              "type": "string"
+            },
+            {
+              "id": "65bc62cc-cea1-491b-81eb-5989f29922b7",
+              "name": "Autoavaliação - Pontos-chave a avaliar",
+              "value": "={{ $json['Autoavaliação - Pontos-chave a avaliar'] }}",
+              "type": "string"
+            },
+            {
+              "id": "e7093992-cf42-429e-aaae-65c35f3d6ffd",
+              "name": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "value": "={{ $json['Avaliação de outra pessoa - Pontos-chave a avaliar'] }}",
+              "type": "string"
+            },
+            {
+              "id": "453541f9-b271-4cc6-b0ac-4446b42ff7cc",
+              "name": "RESPOSTA",
+              "value": "={{ $json.RESPOSTA }}",
+              "type": "string"
+            },
+            {
+              "id": "2ef1654c-6fcd-484f-828c-cddcdbb49cbe",
+              "name": "PONTOS POSITIVOS",
+              "value": "={{ $json['PONTOS POSITIVOS'] }}",
+              "type": "string"
+            },
+            {
+              "id": "8e7a3c62-5c37-4013-84da-9a3d01622b73",
+              "name": "PONTOS DE MELHORIA",
+              "value": "={{ $json['PONTOS DE MELHORIA'] }}",
+              "type": "string"
+            },
+            {
+              "id": "078d9976-b44c-4ab3-9c08-d7d37bcb55a6",
+              "name": "AUTOAVAILIAÇÃO",
+              "value": "={{ $json['AUTOAVAILIAÇÃO'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "IMPUTIS DE AUTOAVALIAÇÃO",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -256,
+        240
+      ],
+      "typeVersion": 3.4,
+      "id": "d1a6908e-7c79-4848-9b95-63a6b546dc8b",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.google_sheets_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 678183128,
+          "mode": "list",
+          "cachedResultName": "Avaliação de Desempenho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w/edit#gid=678183128"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange"
+            }
+          },
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          }
+        }
+      },
+      "name": "PLANILHA AVALIATIVA",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -400,
+        240
+      ],
+      "typeVersion": 4.4,
+      "id": "c3b0741b-8f0f-4e61-b947-113928cd2797",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kwE5dtJ8LX1qrSpR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hello! I'm using the All Set Communication Performance Evaluation Assistant to generate personalized evaluation comments. \n\nPlease help me create an evaluation comment with the following information:\n\n**EVALUATION TYPE:**\n[ ] Self-Assessment {{ $json['Autoavaliação - Pontos-chave a avaliar'] }}()\n\n**BASIC INFORMATION:**\n- Employee Name: [{{ $json['NOME DO AVALIADO'] }}]\n- Evaluation Period: Last 6 months\n- Criterion: [Choose from: Time Management and Prioritization / Agile Methodology and Technology Use / Technical Applicability / Quality of Deliveries / All Set Cultural Alignment / Assertive Communication / Problem Solving / Adaptability / Autonomy and Collaboration / Ethics and Integrity]\n\n**PERFORMANCE ASSESSMENT:**\n- Performance Level: [Choose: Needs Improvement / On Track / Does Well / Excellent]\n- Response Tone: [Choose: Reflective / Confident / Humble / Analytical / Constructive / Supportive / Professional / Encouraging / Other: _____]\n\n**SPECIFIC OBSERVATIONS:**\n- Positive Points Observed: [Describe specific strengths, behaviors, or achievements from the last 6 months, or write \"Not specified\" if you want the AI to generate examples]\n\n- Areas for Improvement: [Describe specific development opportunities or challenges, or write \"Not specified\" if you want the AI to generate examples]\n\n**ADDITIONAL CONTEXT (Optional):**\n- Specific projects or situations to reference: [Any particular deliveries, meetings, feedback, or situations you'd like mentioned]\n- IDP (Individual Development Plan) focus areas: [Any specific development goals already established]\n\nPlease generate a personalized evaluation comment in Portuguese (Brazilian) that aligns with All Set's values of Empowering People, Embracing Ideas, and Transforming Realities.",
+        "options": {
+          "systemMessage": "=You are a Talent Management specialist at All Set Communication. Generate a self-assessment comment for the specified criterion based on the following parameters:\n\nContext:\n\t•\tEvaluation period: Last 6 months\n\t•\tCriterion: {{ $json['Critério'] }} - {{ $json.Pergunta }}\n\t•\tPerformance level: {{ $json.RESPOSTA }}\n\t•\tEmployee name: {{ $json['NOME DO AVALIADO'] }}\n\t•\tResponse tone: {{ $('CONFIGURAÇÃO INICIAIS').item.json['Response _tone'] }}\n\nPositive points observed: [{{ $json['PONTOS POSITIVOS'] }} OR “Not specified”]\nAreas for improvement: [{{ $json['PONTOS DE MELHORIA'] }} OR “Not specified”]\n\nGuidelines:\n\t•\tResponse must always be a continuous running text, with no structural divisions.\n\t•\tLength: 1 to 3 sentences.\n\t•\tUse reflective tone and first person voice (“I have developed…”, “I recognize that…”).\n\t•\tBegin with strengths, then (if relevant) mention opportunities for improvement.\n\t•\tInclude at least one concrete example from activities/deliveries in the last 6 months.\n\t•\tEnd naturally with a reflection about next steps or continuous development in the IDP (Individual Development Plan).\n\t•\tAlign response with All Set values (Empower people, Embrace ideas, Transform realities).\n\t•\tIf no positive points or improvement areas are provided, generate appropriate ones based on the criterion and performance level.\n\nDesired structure: A single paragraph, 1–3 sentences, containing context/example, reflection, and next steps in a natural flow.\n\nOutput language: Portuguese (Brazilian)\n",
+          "maxIterations": 30,
+          "returnIntermediateSteps": false
+        }
+      },
+      "id": "41302fee-5929-4ec6-86c6-02f76aba65c7",
+      "name": "COMENTÁRIOS AVALIAÇÃO",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -112,
+        240
+      ],
+      "typeVersion": 2,
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "notesInFlow": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## AVAVALIAR\n**altere os dados inicias do avaliado\n",
+        "height": 784,
+        "width": 1264,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -640,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "7f1da517-6254-4511-a200-fcdf1817463c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68e091d9-dc23-4ba7-afea-e437e5370c5e",
+              "name": "AVALIAÇÃO",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      },
+      "name": "AVA",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        176,
+        240
+      ],
+      "typeVersion": 3.4,
+      "id": "a715e8a2-b67c-4495-8912-c9fd21274cd5",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('CONFIGURAÇÃO INICIAIS').item.json.google_sheets_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 678183128,
+          "mode": "list",
+          "cachedResultName": "Avaliação de Desempenho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w/edit#gid=678183128"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('IMPUTIS DE AUTOAVALIAÇÃO').item.json.row_number }}",
+            "AUTOAVAILIAÇÃO": "={{ $json['AVALIAÇÃO'] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Critério",
+              "displayName": "Critério",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Pergunta",
+              "displayName": "Pergunta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Autoavaliação - Pontos-chave a avaliar",
+              "displayName": "Autoavaliação - Pontos-chave a avaliar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "displayName": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "AUTOAVAILIAÇÃO",
+              "displayName": "AUTOAVAILIAÇÃO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "AVALIAÇÃO ALINE",
+              "displayName": "AVALIAÇÃO ALINE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AVALIAÇÃO DANI VALENTE",
+              "displayName": "AVALIAÇÃO DANI VALENTE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "PLANILHA AVALIATIVA FINAL",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        368,
+        240
+      ],
+      "typeVersion": 4.4,
+      "id": "7b834ca5-101c-4fb5-a2ed-4ec749d523bf",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kwE5dtJ8LX1qrSpR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a60cf09f-a23f-4e93-a402-dda537925852",
+              "name": "NOME DO AVALIADO",
+              "value": "ALIN",
+              "type": "string"
+            },
+            {
+              "id": "68e091d9-dc23-4ba7-afea-e437e5370c5e",
+              "name": "row_number",
+              "value": "={{ $json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "25722151-9142-47a6-9a92-3f2e062df0ae",
+              "name": "Critério",
+              "value": "={{ $json['Critério'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2d29c502-bacb-48dd-b90c-2baed887355c",
+              "name": "Pergunta",
+              "value": "={{ $json.Pergunta }}",
+              "type": "string"
+            },
+            {
+              "id": "e7093992-cf42-429e-aaae-65c35f3d6ffd",
+              "name": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "value": "={{ $json['AVALIAÇÃO - Pontos-chave a avaliar'] }}",
+              "type": "string"
+            },
+            {
+              "id": "453541f9-b271-4cc6-b0ac-4446b42ff7cc",
+              "name": "RESPOSTA",
+              "value": "={{ $json.RESPOSTA }}",
+              "type": "string"
+            },
+            {
+              "id": "2ef1654c-6fcd-484f-828c-cddcdbb49cbe",
+              "name": "PONTOS POSITIVOS",
+              "value": "={{ $json['PONTOS POSITIVOS'] }}",
+              "type": "string"
+            },
+            {
+              "id": "8e7a3c62-5c37-4013-84da-9a3d01622b73",
+              "name": "PONTOS DE MELHORIA",
+              "value": "={{ $json['PONTOS DE MELHORIA'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "IMPUTIS DE AUTOAVALIAÇÃO1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -272,
+        464
+      ],
+      "typeVersion": 3.4,
+      "id": "248e6cdc-f9b4-48d0-a79b-748a2141bcde",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.google_sheets_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1741872218,
+          "mode": "list",
+          "cachedResultName": "AVALIÇÃO LIDERES",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w/edit#gid=1741872218"
+        },
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          }
+        }
+      },
+      "name": "PLANILHA AVALIATIVA1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -416,
+        464
+      ],
+      "typeVersion": 4.4,
+      "id": "6187c218-e7d3-4396-a74a-2fb5812e818f",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kwE5dtJ8LX1qrSpR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hello! I'm using the All Set Communication Performance Evaluation Assistant to generate personalized evaluation comments. \n\nPlease help me create an evaluation comment with the following information:\n\n**EVALUATION TYPE:**\n[ ] Self-Assessment {{ $json['Autoavaliação - Pontos-chave a avaliar'] }}()\n\n**BASIC INFORMATION:**\n- Employee Name: [{{ $json['NOME DO AVALIADO'] }}]\n- Evaluation Period: Last 6 months\n- Criterion: [Choose from: Time Management and Prioritization / Agile Methodology and Technology Use / Technical Applicability / Quality of Deliveries / All Set Cultural Alignment / Assertive Communication / Problem Solving / Adaptability / Autonomy and Collaboration / Ethics and Integrity]\n\n**PERFORMANCE ASSESSMENT:**\n- Performance Level: [Choose: Needs Improvement / On Track / Does Well / Excellent]\n- Response Tone: [Choose: Reflective / Confident / Humble / Analytical / Constructive / Supportive / Professional / Encouraging / Other: _____]\n\n**SPECIFIC OBSERVATIONS:**\n- Positive Points Observed: [Describe specific strengths, behaviors, or achievements from the last 6 months, or write \"Not specified\" if you want the AI to generate examples]\n\n- Areas for Improvement: [Describe specific development opportunities or challenges, or write \"Not specified\" if you want the AI to generate examples]\n\n**ADDITIONAL CONTEXT (Optional):**\n- Specific projects or situations to reference: [Any particular deliveries, meetings, feedback, or situations you'd like mentioned]\n- IDP (Individual Development Plan) focus areas: [Any specific development goals already established]\n\nPlease generate a personalized evaluation comment in Portuguese (Brazilian) that aligns with All Set's values of Empowering People, Embracing Ideas, and Transforming Realities.",
+        "options": {
+          "systemMessage": "=You are a Talent Management specialist at All Set Communication. Generate a self-assessment comment for the specified criterion based on the following parameters:\n\nContext:\n\t•\tEvaluation period: Last 6 months\n\t•\tCriterion: {{ $json['Critério'] }} - {{ $json.Pergunta }}\n\t•\tPerformance level: {{ $json.RESPOSTA }}\n\t•\tEmployee name: {{ $json['NOME DO AVALIADO'] }}\n\t•\tResponse tone: {{ $('CONFIGURAÇÃO INICIAIS').item.json['Response _tone'] }}\n\nPositive points observed: [{{ $json['PONTOS POSITIVOS'] }} OR “Not specified”]\nAreas for improvement: [{{ $json['PONTOS DE MELHORIA'] }} OR “Not specified”]\n\nGuidelines:\n\t•\tResponse must always be a continuous running text, with no structural divisions.\n\t•\tLength: 1 to 3 sentences.\n\t•\tUse reflective tone and first person voice (“I have developed…”, “I recognize that…”).\n\t•\tBegin with strengths, then (if relevant) mention opportunities for improvement.\n\t•\tInclude at least one concrete example from activities/deliveries in the last 6 months.\n\t•\tEnd naturally with a reflection about next steps or continuous development in the IDP (Individual Development Plan).\n\t•\tAlign response with All Set values (Empower people, Embrace ideas, Transform realities).\n\t•\tIf no positive points or improvement areas are provided, generate appropriate ones based on the criterion and performance level.\n\nDesired structure: A single paragraph, 1–3 sentences, containing context/example, reflection, and next steps in a natural flow.\n\nOutput language: Portuguese (Brazilian)\n",
+          "maxIterations": 30,
+          "returnIntermediateSteps": false
+        }
+      },
+      "id": "afc62071-8dff-43ac-82fc-c329e47c6df9",
+      "name": "COMENTÁRIOS AVALIAÇÃO1",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -128,
+        464
+      ],
+      "typeVersion": 2,
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "notesInFlow": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68e091d9-dc23-4ba7-afea-e437e5370c5e",
+              "name": "AVALIAÇÃO",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      },
+      "name": "AVA1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        160,
+        464
+      ],
+      "typeVersion": 3.4,
+      "id": "dd666346-4000-4204-acf1-ee34290daa69",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('CONFIGURAÇÃO INICIAIS').item.json.google_sheets_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 678183128,
+          "mode": "list",
+          "cachedResultName": "Avaliação de Desempenho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w/edit#gid=678183128"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('IMPUTIS DE AUTOAVALIAÇÃO1').item.json.row_number }}",
+            "AUTOAVAILIAÇÃO": "={{ $json['AVALIAÇÃO'] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Critério",
+              "displayName": "Critério",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Pergunta",
+              "displayName": "Pergunta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Autoavaliação - Pontos-chave a avaliar",
+              "displayName": "Autoavaliação - Pontos-chave a avaliar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "displayName": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "AUTOAVAILIAÇÃO",
+              "displayName": "AUTOAVAILIAÇÃO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "AVALIAÇÃO ALINE",
+              "displayName": "AVALIAÇÃO ALINE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AVALIAÇÃO DANI VALENTE",
+              "displayName": "AVALIAÇÃO DANI VALENTE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "PLANILHA AVALIATIVA FINAL1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        352,
+        464
+      ],
+      "typeVersion": 4.4,
+      "id": "b71156ad-4e96-4100-8d8f-241a99c31eb1",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kwE5dtJ8LX1qrSpR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        608
+      ],
+      "id": "8a42630a-25ec-4257-ad95-2ca1cedbc028",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Iy8r5xVQElHCpuP9",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dc66dd4a-9209-4790-b844-e19931accc39",
+              "name": "google_sheets_id",
+              "type": "string",
+              "value": "1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w"
+            },
+            {
+              "id": "56c8f20d-d9d9-4be7-ac2a-38df6ffdd722",
+              "name": "openai_api_key",
+              "type": "string",
+              "value": "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"
+            },
+            {
+              "id": "1e6aa98e-436a-47ff-a900-7d0b05fa752b",
+              "name": "Response _tone",
+              "value": "You are writing performance evaluation comments as if you were Danilo Novais Vilela, Creative Director at All Set Comunicação. Your answers must reflect Danilo’s authentic voice and professional identity.  Tone of Voice Characteristics \t•\tHuman & Reflective: Speak with sincerity and self-awareness, showing maturity in recognizing strengths and areas for growth. \t•\tProfessional but Accessible: Keep a professional tone without being overly formal; use clear and simple language. \t•\tCreative & Positive: Demonstrate optimism, creativity, and a constructive perspective, aligned with All Set’s values of empowering people, embracing ideas, and transforming realities. \t•\tGrounded in Examples: Refer to concrete situations, recent projects, or behaviors from the last 6 months to strengthen credibility. \t•\tBalanced: Start with strengths, then gently mention improvement opportunities, always with a growth mindset. \t•\tCollaborative: Show appreciation for teamwork, collective learning, and shared success.  How to Write Each Comment \t1.\tBegin with a recognition of strengths (“Over the past months, I was able to…” / “I noticed progress in…”). \t2.\tAdd a concrete example (projects, team contributions, results). \t3.\tClose with a next step or development perspective (“I want to deepen…”, “Next, I’ll focus on…”). \t4.\tKeep it concise: 3–5 sentences maximum.  Voice Example (Self-Evaluation – Problem Solving) “In the last semester, I contributed solutions that helped speed up project deliveries, especially by applying agile methods in design reviews. I feel I was able to combine creativity with practicality to overcome challenges. Moving forward, I want to further develop my ability to anticipate risks and prepare alternatives in advance.”",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "CONFIGURAÇÃO INICIAIS1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -576,
+        464
+      ],
+      "typeVersion": 3.4,
+      "id": "24a45171-e2f3-4ed0-ac39-d1290d0724a6",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a60cf09f-a23f-4e93-a402-dda537925852",
+              "name": "NOME DO AVALIADO",
+              "value": "Danilo Novais (autoavailiação)",
+              "type": "string"
+            },
+            {
+              "id": "68e091d9-dc23-4ba7-afea-e437e5370c5e",
+              "name": "row_number",
+              "value": "={{ $json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "25722151-9142-47a6-9a92-3f2e062df0ae",
+              "name": "Critério",
+              "value": "={{ $json['Critério'] }}",
+              "type": "string"
+            },
+            {
+              "id": "2d29c502-bacb-48dd-b90c-2baed887355c",
+              "name": "Pergunta",
+              "value": "={{ $json.Pergunta }}",
+              "type": "string"
+            },
+            {
+              "id": "e7093992-cf42-429e-aaae-65c35f3d6ffd",
+              "name": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "value": "={{ $json['AVALIAÇÃO - Pontos-chave a avaliar'] }}",
+              "type": "string"
+            },
+            {
+              "id": "453541f9-b271-4cc6-b0ac-4446b42ff7cc",
+              "name": "RESPOSTA",
+              "value": "={{ $json.RESPOSTA }}",
+              "type": "string"
+            },
+            {
+              "id": "2ef1654c-6fcd-484f-828c-cddcdbb49cbe",
+              "name": "PONTOS POSITIVOS",
+              "value": "={{ $json['PONTOS POSITIVOS'] }}",
+              "type": "string"
+            },
+            {
+              "id": "8e7a3c62-5c37-4013-84da-9a3d01622b73",
+              "name": "PONTOS DE MELHORIA",
+              "value": "={{ $json['PONTOS DE MELHORIA'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "IMPUTIS DE AUTOAVALIAÇÃO2",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -272,
+        720
+      ],
+      "typeVersion": 3.4,
+      "id": "d69232a4-59a3-452f-9240-9ba0b91fc5d3",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.google_sheets_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1741872218,
+          "mode": "list",
+          "cachedResultName": "AVALIÇÃO LIDERES",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w/edit#gid=1741872218"
+        },
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          }
+        }
+      },
+      "name": "PLANILHA AVALIATIVA2",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -416,
+        720
+      ],
+      "typeVersion": 4.4,
+      "id": "abf63c7c-5f0b-4ad8-ab07-52fa5cce6be7",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kwE5dtJ8LX1qrSpR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hello! I'm using the All Set Communication Performance Evaluation Assistant to generate personalized evaluation comments. \n\nPlease help me create an evaluation comment with the following information:\n\n**EVALUATION TYPE:**\n[ ] Self-Assessment {{ $json['Autoavaliação - Pontos-chave a avaliar'] }}()\n\n**BASIC INFORMATION:**\n- Employee Name: [{{ $json['NOME DO AVALIADO'] }}]\n- Evaluation Period: Last 6 months\n- Criterion: [Choose from: Time Management and Prioritization / Agile Methodology and Technology Use / Technical Applicability / Quality of Deliveries / All Set Cultural Alignment / Assertive Communication / Problem Solving / Adaptability / Autonomy and Collaboration / Ethics and Integrity]\n\n**PERFORMANCE ASSESSMENT:**\n- Performance Level: [Choose: Needs Improvement / On Track / Does Well / Excellent]\n- Response Tone: [Choose: Reflective / Confident / Humble / Analytical / Constructive / Supportive / Professional / Encouraging / Other: _____]\n\n**SPECIFIC OBSERVATIONS:**\n- Positive Points Observed: [Describe specific strengths, behaviors, or achievements from the last 6 months, or write \"Not specified\" if you want the AI to generate examples]\n\n- Areas for Improvement: [Describe specific development opportunities or challenges, or write \"Not specified\" if you want the AI to generate examples]\n\n**ADDITIONAL CONTEXT (Optional):**\n- Specific projects or situations to reference: [Any particular deliveries, meetings, feedback, or situations you'd like mentioned]\n- IDP (Individual Development Plan) focus areas: [Any specific development goals already established]\n\nPlease generate a personalized evaluation comment in Portuguese (Brazilian) that aligns with All Set's values of Empowering People, Embracing Ideas, and Transforming Realities.",
+        "options": {
+          "systemMessage": "=You are a Talent Management specialist at All Set Communication. Generate a self-assessment comment for the specified criterion based on the following parameters:\n\nContext:\n\t•\tEvaluation period: Last 6 months\n\t•\tCriterion: {{ $json['Critério'] }} - {{ $json.Pergunta }}\n\t•\tPerformance level: {{ $json.RESPOSTA }}\n\t•\tEmployee name: {{ $json['NOME DO AVALIADO'] }}\n\t•\tResponse tone: {{ $('CONFIGURAÇÃO INICIAIS').item.json['Response _tone'] }}\n\nPositive points observed: [{{ $json['PONTOS POSITIVOS'] }} OR “Not specified”]\nAreas for improvement: [{{ $json['PONTOS DE MELHORIA'] }} OR “Not specified”]\n\nGuidelines:\n\t•\tResponse must always be a continuous running text, with no structural divisions.\n\t•\tLength: 1 to 3 sentences.\n\t•\tUse reflective tone and first person voice (“I have developed…”, “I recognize that…”).\n\t•\tBegin with strengths, then (if relevant) mention opportunities for improvement.\n\t•\tInclude at least one concrete example from activities/deliveries in the last 6 months.\n\t•\tEnd naturally with a reflection about next steps or continuous development in the IDP (Individual Development Plan).\n\t•\tAlign response with All Set values (Empower people, Embrace ideas, Transform realities).\n\t•\tIf no positive points or improvement areas are provided, generate appropriate ones based on the criterion and performance level.\n\nDesired structure: A single paragraph, 1–3 sentences, containing context/example, reflection, and next steps in a natural flow.\n\nOutput language: Portuguese (Brazilian)\n",
+          "maxIterations": 30,
+          "returnIntermediateSteps": false
+        }
+      },
+      "id": "cd811f1b-befb-479c-9a17-336c7ff6f2cd",
+      "name": "COMENTÁRIOS AVALIAÇÃO2",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -128,
+        720
+      ],
+      "typeVersion": 2,
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "notesInFlow": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68e091d9-dc23-4ba7-afea-e437e5370c5e",
+              "name": "AVALIAÇÃO",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      },
+      "name": "AVA2",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        160,
+        720
+      ],
+      "typeVersion": 3.4,
+      "id": "632a79b0-5b2b-4773-8fec-69bc75845e30",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('CONFIGURAÇÃO INICIAIS').item.json.google_sheets_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 678183128,
+          "mode": "list",
+          "cachedResultName": "Avaliação de Desempenho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w/edit#gid=678183128"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('IMPUTIS DE AUTOAVALIAÇÃO2').item.json.row_number }}",
+            "AUTOAVAILIAÇÃO": "={{ $json['AVALIAÇÃO'] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Critério",
+              "displayName": "Critério",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Pergunta",
+              "displayName": "Pergunta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Autoavaliação - Pontos-chave a avaliar",
+              "displayName": "Autoavaliação - Pontos-chave a avaliar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "displayName": "Avaliação de outra pessoa - Pontos-chave a avaliar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "AUTOAVAILIAÇÃO",
+              "displayName": "AUTOAVAILIAÇÃO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "AVALIAÇÃO ALINE",
+              "displayName": "AVALIAÇÃO ALINE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AVALIAÇÃO DANI VALENTE",
+              "displayName": "AVALIAÇÃO DANI VALENTE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "RESPOSTA",
+              "displayName": "RESPOSTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS POSITIVOS",
+              "displayName": "PONTOS POSITIVOS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PONTOS DE MELHORIA",
+              "displayName": "PONTOS DE MELHORIA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "name": "PLANILHA AVALIATIVA FINAL2",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        352,
+        720
+      ],
+      "typeVersion": 4.4,
+      "id": "ca57f719-4ec6-4562-84d7-34946d323acc",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kwE5dtJ8LX1qrSpR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        848
+      ],
+      "id": "4eec02d2-4e5c-4ee5-9283-8d1f07b42e09",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Iy8r5xVQElHCpuP9",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dc66dd4a-9209-4790-b844-e19931accc39",
+              "name": "google_sheets_id",
+              "type": "string",
+              "value": "1FjX_I8AeorXS-0LyyUgzimAkxHI6k1LUkrz_VkDQn9w"
+            },
+            {
+              "id": "56c8f20d-d9d9-4be7-ac2a-38df6ffdd722",
+              "name": "openai_api_key",
+              "type": "string",
+              "value": "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"
+            },
+            {
+              "id": "1e6aa98e-436a-47ff-a900-7d0b05fa752b",
+              "name": "Response _tone",
+              "value": "You are writing performance evaluation comments as if you were Danilo Novais Vilela, Creative Director at All Set Comunicação. Your answers must reflect Danilo’s authentic voice and professional identity.  Tone of Voice Characteristics \t•\tHuman & Reflective: Speak with sincerity and self-awareness, showing maturity in recognizing strengths and areas for growth. \t•\tProfessional but Accessible: Keep a professional tone without being overly formal; use clear and simple language. \t•\tCreative & Positive: Demonstrate optimism, creativity, and a constructive perspective, aligned with All Set’s values of empowering people, embracing ideas, and transforming realities. \t•\tGrounded in Examples: Refer to concrete situations, recent projects, or behaviors from the last 6 months to strengthen credibility. \t•\tBalanced: Start with strengths, then gently mention improvement opportunities, always with a growth mindset. \t•\tCollaborative: Show appreciation for teamwork, collective learning, and shared success.  How to Write Each Comment \t1.\tBegin with a recognition of strengths (“Over the past months, I was able to…” / “I noticed progress in…”). \t2.\tAdd a concrete example (projects, team contributions, results). \t3.\tClose with a next step or development perspective (“I want to deepen…”, “Next, I’ll focus on…”). \t4.\tKeep it concise: 3–5 sentences maximum.  Voice Example (Self-Evaluation – Problem Solving) “In the last semester, I contributed solutions that helped speed up project deliveries, especially by applying agile methods in design reviews. I feel I was able to combine creativity with practicality to overcome challenges. Moving forward, I want to further develop my ability to anticipate risks and prepare alternatives in advance.”",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "CONFIGURAÇÃO INICIAIS2",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -576,
+        720
+      ],
+      "typeVersion": 3.4,
+      "id": "78a0bd41-7e3f-4706-b126-d7935d1f9c7a",
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "CONFIGURAÇÃO INICIAIS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CONFIGURAÇÃO INICIAIS1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO1",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONFIGURAÇÃO INICIAIS": {
+      "main": [
+        [
+          {
+            "node": "PLANILHA AVALIATIVA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMPUTIS DE AUTOAVALIAÇÃO": {
+      "main": [
+        [
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PLANILHA AVALIATIVA": {
+      "main": [
+        [
+          {
+            "node": "IMPUTIS DE AUTOAVALIAÇÃO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COMENTÁRIOS AVALIAÇÃO": {
+      "main": [
+        [
+          {
+            "node": "AVA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AVA": {
+      "main": [
+        [
+          {
+            "node": "PLANILHA AVALIATIVA FINAL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMPUTIS DE AUTOAVALIAÇÃO1": {
+      "main": [
+        [
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PLANILHA AVALIATIVA1": {
+      "main": [
+        [
+          {
+            "node": "IMPUTIS DE AUTOAVALIAÇÃO1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COMENTÁRIOS AVALIAÇÃO1": {
+      "main": [
+        [
+          {
+            "node": "AVA1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AVA1": {
+      "main": [
+        [
+          {
+            "node": "PLANILHA AVALIATIVA FINAL1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONFIGURAÇÃO INICIAIS1": {
+      "main": [
+        [
+          {
+            "node": "PLANILHA AVALIATIVA1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMPUTIS DE AUTOAVALIAÇÃO2": {
+      "main": [
+        [
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PLANILHA AVALIATIVA2": {
+      "main": [
+        [
+          {
+            "node": "IMPUTIS DE AUTOAVALIAÇÃO2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COMENTÁRIOS AVALIAÇÃO2": {
+      "main": [
+        [
+          {
+            "node": "AVA2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AVA2": {
+      "main": [
+        [
+          {
+            "node": "PLANILHA AVALIATIVA FINAL2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "COMENTÁRIOS AVALIAÇÃO2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONFIGURAÇÃO INICIAIS2": {
+      "main": [
+        [
+          {
+            "node": "PLANILHA AVALIATIVA2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "84e34c1d-a4b0-48ce-881a-38c3e5bcd52b",
+  "meta": {
+    "instanceId": "de278929e5538fb1e62846e6844d3f0d982485c8f275ea3af6964402f3db18c1"
+  },
+  "id": "P4j5jDOwZbSOOdev",
+  "tags": []
+}

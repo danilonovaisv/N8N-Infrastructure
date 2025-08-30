@@ -1,5 +1,5 @@
 # Pin the n8n version for predictable upgrades/rollbacks
-FROM n8nio/n8n:1.108.2
+FROM node:22.19-alpine3.22
 # Hugging Face Spaces injects $PORT; n8n should listen on it
 ARG PORT=6543
 ARG WEBHOOK_URL=https://danilonovais-n8n-dan.hf.space

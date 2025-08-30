@@ -10,6 +10,8 @@ services:
     environment:
       # Force SSL for DB
       - DB_POSTGRESDB_SSL=true
+      # Database port
+      - DB_POSTGRESDB_PORT=6543
       # Community nodes
       - N8N_ENABLE_COMMUNITY_NODES=${N8N_ENABLE_COMMUNITY_NODES:-true}
       - N8N_COMMUNITY_PACKAGES=${N8N_COMMUNITY_PACKAGES:-["n8n-nodes-langchain","n8n-nodes-google","n8n-nodes-vertexai"]}

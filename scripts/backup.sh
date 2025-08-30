@@ -40,7 +40,7 @@
 +BACKUP_FILE="$BACKUP_DIR_DB/db-backup-$DATE_STAMP.sql"
  pg_dump \
    --host="$DB_POSTGRESDB_HOST" \
-   --port="${DB_POSTGRESDB_PORT:-5432}" \
+  --port="${DB_POSTGRESDB_PORT:-6543}" \
 @@ .. @@
    --no-privileges \
    --verbose \

@@ -96,7 +96,7 @@ fi
 echo "==> Testing database connection..."
 export PGPASSWORD="$DB_POSTGRESDB_PASSWORD"
 
-if ! pg_isready -h "$DB_POSTGRESDB_HOST" -p "${DB_POSTGRESDB_PORT:-5432}" -U "$DB_POSTGRESDB_USER" -d "$DB_POSTGRESDB_DATABASE"; then
+if ! pg_isready -h "$DB_POSTGRESDB_HOST" -p "${DB_POSTGRESDB_PORT:-6543}" -U "$DB_POSTGRESDB_USER" -d "$DB_POSTGRESDB_DATABASE"; then
   echo "❌ Cannot connect to database" >&2
   exit 1
 fi
@@ -110,7 +110,7 @@ mkdir -p "$(dirname "$SAFETY_BACKUP")"
 
 pg_dump \
   --host="$DB_POSTGRESDB_HOST" \
-  --port="${DB_POSTGRESDB_PORT:-5432}" \
+  --port="${DB_POSTGRESDB_PORT:-6543}" \
   --username="$DB_POSTGRESDB_USER" \
   --dbname="$DB_POSTGRESDB_DATABASE" \
   --format=plain \
@@ -125,7 +125,7 @@ echo "✅ Safety backup created: $SAFETY_BACKUP"
 echo "==> Restoring database from $SQL_FILE"
 psql \
   --host="$DB_POSTGRESDB_HOST" \
-  --port="${DB_POSTGRESDB_PORT:-5432}" \
+  --port="${DB_POSTGRESDB_PORT:-6543}" \
   --username="$DB_POSTGRESDB_USER" \
   --dbname="$DB_POSTGRESDB_DATABASE" \
   --set ON_ERROR_STOP=on \

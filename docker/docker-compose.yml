@@ -15,7 +15,7 @@ services:
       - N8N_COMMUNITY_PACKAGES=${N8N_COMMUNITY_PACKAGES:-["n8n-nodes-langchain","n8n-nodes-google","n8n-nodes-vertexai"]}
       # n8n basics
       - N8N_HOST=${N8N_HOST:-localhost}
-      - N8N_PORT=${N8N_PORT:-5678}
+      - N8N_PORT=${N8N_PORT:-6543}
       - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
       - WEBHOOK_URL=${WEBHOOK_URL:-https://danilonovais-n8n-dan.hf.space}
     volumes:
@@ -41,4 +41,3 @@ services:
 volumes:
   n8n_data:
   qdrant_data:
-

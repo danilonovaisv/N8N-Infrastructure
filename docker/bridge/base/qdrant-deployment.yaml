@@ -1,0 +1,42 @@
+#! qdrant-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: qdrant
+    namespace: docker
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: qdrant
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: docker
+            com.docker.compose.service: qdrant
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: docker
+                com.docker.compose.service: qdrant
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: unless-stopped
+            containers:
+                - name: qdrant
+                  image: qdrant/qdrant:v1.9.1
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                    - name: qdrant-6334
+                      containerPort: 6334
+                    - name: qdrant-6333
+                      containerPort: 6333
+                  volumeMounts:
+                    - name: qdrant-storage
+                      mountPath: /qdrant/storage
+            volumes:
+                - name: qdrant-storage
+                  persistentVolumeClaim:
+                    claimName: qdrant-qdrant-data

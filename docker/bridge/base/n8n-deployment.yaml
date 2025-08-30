@@ -25,18 +25,32 @@ spec:
         spec:
             restartPolicy: unless-stopped
             containers:
-                - name: n8n-local
-                  image: n8nio/n8n:1.108.2
+                - name: n8n-infrastructure
+                  image: n8nio/n8n:1.53.1
                   imagePullPolicy: IfNotPresent
                   env:
-                    - name: DB_POSTGRESDB_DATABASE
+                    - name: ALLOWED_ORIGINS
+                      value: "https://your-n8n-host.hf.space"
+                    - name: ANTHROPIC_API_KEY
                       value: ""
+                    - name: BACKUP_ENCRYPTION_PASSWORD
+                      value: ""
+                    - name: CHROMA_AUTH_TOKEN
+                      value: ""
+                    - name: CHROMA_HOST
+                      value: "api.chroma.com"
+                    - name: CHROMA_PORT
+                      value: "443"
+                    - name: CSRF_SECRET
+                      value: ""
+                    - name: DB_POSTGRESDB_DATABASE
+                      value: "postgres"
                     - name: DB_POSTGRESDB_HOST
                       value: ""
                     - name: DB_POSTGRESDB_PASSWORD
                       value: ""
                     - name: DB_POSTGRESDB_PORT
-                      value: ""
+                      value: "6543"
                     - name: DB_POSTGRESDB_SCHEMA
                       value: "public"
                     - name: DB_POSTGRESDB_SSL
@@ -44,7 +58,7 @@ spec:
                     - name: DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED
                       value: "false"
                     - name: DB_POSTGRESDB_USER
-                      value: ""
+                      value: "postgres"
                     - name: DB_TYPE
                       value: "postgresdb"
                     - name: EXECUTIONS_DATA_MAX_AGE
@@ -57,32 +71,83 @@ spec:
                       value: "none"
                     - name: EXECUTIONS_MODE
                       value: "regular"
+                    - name: GITHUB_TOKEN
+                      value: ""
+                    - name: GOOGLE_APPLICATION_CREDENTIALS
+                      value: "/home/node/.n8n/credentials/google-service-account.json"
+                    - name: GOOGLE_CREDENTIALS_PATH
+                      value: "/home/node/.n8n/credentials/google-service-account.json"
+                    - name: GOOGLE_PROJECT_ID
+                      value: ""
+                    - name: HF_SPACE_NAME
+                      value: "your-username/your-space-name"
+                    - name: HF_TOKEN
+                      value: ""
+                    - name: KB_BRANCH_N8N
+                      value: "main"
+                    - name: KB_PATH_N8N
+                      value: "projects/n8n,projects/videos-e-animacoes,projects/midjorney-prompt"
+                    - name: KB_REPO_N8N
+                      value: "https://github.com/danilonovaisv/CHATGPT-knowledge-base.git"
+                    - name: N8N_API_KEY
+                      value: ""
+                    - name: N8N_COMMUNITY_PACKAGES
+                      value: "[\"n8n-nodes-langchain\",\"n8n-nodes-google\",\"n8n-nodes-vertexai\"]"
+                    - name: N8N_ENABLE_COMMUNITY_NODES
+                      value: "true"
                     - name: N8N_ENCRYPTION_KEY
                       value: ""
+                    - name: N8N_HOST
+                      value: "localhost"
+                    - name: N8N_LOG_LEVEL
+                      value: "info"
                     - name: N8N_METRICS
                       value: "true"
                     - name: N8N_PORT
-                      value: "5678"
+                      value: "6543"
                     - name: N8N_PROTOCOL
                       value: "http"
+                    - name: N8N_PUBLIC_API_DISABLED
+                      value: "false"
                     - name: N8N_USER_MANAGEMENT_JWT_SECRET
                       value: ""
-                    - name: QUEUE_HEALTH_CHECK_ACTIVE
+                    - name: OPENAI_API_KEY
+                      value: ""
+                    - name: QUEUE_BULL_REDIS_DISABLED
                       value: "true"
+                    - name: RATE_LIMIT_MAX
+                      value: "100"
+                    - name: RATE_LIMIT_WINDOW
+                      value: "15"
+                    - name: SENTRY_DSN
+                      value: ""
                     - name: WEBHOOK_URL
-                      value: "http://localhost:5678/"
+                      value: "https://danilonovais-n8n-dan.hf.space"
+                  livenessProbe:
+                    exec:
+                        command: ['curl -fsS http://localhost:6543/healthz']
+                    periodSeconds: 30
+                    timeoutSeconds: 10
+                    failureThreshold: 5
                   ports:
                     - name: n8n-5678
                       containerPort: 5678
+                    - name: n8n-6543
+                      containerPort: 6543
                   volumeMounts:
-                    - name: config
-                      mountPath: /config
-                    - name: workflows
-                      mountPath: /workflows
+                    - name: home-node--n8n
+                      mountPath: /home/node/.n8n
+                    - name: data-workflows
+                      mountPath: /data/workflows
+                    - name: data-knowledge
+                      mountPath: /data/knowledge
             volumes:
-                - name: config
+                - name: home-node--n8n
+                  persistentVolumeClaim:
+                    claimName: n8n-n8n-data
+                - name: data-workflows
                   hostPath:
-                    path: /Users/danilonovais/N8N-Infrastructure/docker/config
-                - name: workflows
+                    path: /Users/danilonovais/N8N-Infrastructure/workflows
+                - name: data-knowledge
                   hostPath:
-                    path: /Users/danilonovais/N8N-Infrastructure/docker/workflows
+                    path: /Users/danilonovais/N8N-Infrastructure/knowledge

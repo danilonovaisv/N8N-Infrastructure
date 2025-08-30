@@ -1,0 +1,9 @@
+#! qdrant-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: qdrant-published
+    namespace: docker
+spec:
+    type: LoadBalancer

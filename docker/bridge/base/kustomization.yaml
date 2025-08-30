@@ -7,4 +7,9 @@ resources:
     - default-network-policy.yaml
     - n8n-deployment.yaml
     - n8n-expose.yaml
+    - n8n-n8n_data-persistentVolumeClaim.yaml
     - n8n-service.yaml
+    - qdrant-deployment.yaml
+    - qdrant-expose.yaml
+    - qdrant-qdrant_data-persistentVolumeClaim.yaml
+    - qdrant-service.yaml

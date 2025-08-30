@@ -9,3 +9,5 @@ metadata:
     namespace: docker
 spec:
     type: LoadBalancer
+
+# check if there is at least one published port

@@ -15,7 +15,9 @@ spec:
         com.docker.compose.project: docker
         com.docker.compose.service: n8n
     ports:
-        - name: n8n-5678
-          port: 5678
+        - name: n8n-6543
+          port: 6543
           protocol: TCP
-          targetPort: n8n-5678
+          targetPort: n8n-6543
+
+# check if there is at least one published port

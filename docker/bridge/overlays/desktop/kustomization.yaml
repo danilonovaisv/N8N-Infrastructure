@@ -5,4 +5,7 @@ kind: Kustomization
 resources:
     - ../../base
 patches:
+    - path: n8n-n8n_data-persistentVolumeClaim.yaml
     - path: n8n-service.yaml
+    - path: qdrant-qdrant_data-persistentVolumeClaim.yaml
+    - path: qdrant-service.yaml

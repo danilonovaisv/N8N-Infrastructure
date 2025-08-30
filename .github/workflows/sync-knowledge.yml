@@ -1,4 +1,6 @@
 name: Sync Knowledge (GitHub → Supabase/pgvector)
+permissions:
+  contents: read
 
 on:
   schedule:

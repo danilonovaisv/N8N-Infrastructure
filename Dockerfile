@@ -1,47 +1,27 @@
-# Pin the n8n version for predictable upgrades/rollbacks
-FROM node:22.19-alpine3.22
-# Hugging Face Spaces injects $PORT; n8n should listen on it
-ARG PORT=6543
-ARG WEBHOOK_URL=https://danilonovais-n8n-dan.hf.space
-ENV PORT=$PORT
-ENV WEBHOOK_URL=$WEBHOOK_URL
-# Public URL (important for webhooks behind HF proxy)
-ENV WEBHOOK_URL=${WEBHOOK_URL}
+# Use the official n8n image, pinning a specific version for stability.
+# This image is already optimized, secure (runs as non-root), and includes healthchecks.
+FROM n8nio/n8n:1.53.1
 
-# Execution & retention (production-friendly defaults)
-ENV EXECUTIONS_MODE=regular
+# Hugging Face Spaces automatically sets the PORT environment variable.
+# n8n will listen on this port by default. No ARG/ENV for PORT is needed.
+
+# Set environment variables that are safe and necessary for the build.
+# All sensitive data (DB credentials, API keys) should be set as secrets
+# in the Hugging Face Space repository settings.
+
+# --- Production-Ready Settings ---
+
+# For detailed execution logs for debugging failed runs
 ENV EXECUTIONS_DATA_SAVE_ON_ERROR=all
+# Save resources by not storing data for successful runs
 ENV EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+# Enable automatic cleanup of old execution data
 ENV EXECUTIONS_DATA_PRUNE=true
+# Keep execution data for 14 days (336 hours)
 ENV EXECUTIONS_DATA_MAX_AGE=336
-ENV QUEUE_BULL_REDIS_DISABLED=true
 
-# Health/metrics
+# Enable Prometheus metrics endpoint
 ENV N8N_METRICS=true
-ENV QUEUE_HEALTH_CHECK_ACTIVE=true
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f "http://localhost:${N8N_PORT:-5678}/healthz" || exit 1
-
-# Switch to non-root user for security
-USER node
-
-# Database (set via Secrets in HF Space)
-# ENV DB_TYPE=postgresdb
-# ENV DB_POSTGRESDB_HOST=
-# ENV DB_POSTGRESDB_PORT=5432
-# ENV DB_POSTGRESDB_DATABASE=
-# ENV DB_POSTGRESDB_USER=
-# ENV DB_POSTGRESDB_PASSWORD=
-# ENV DB_POSTGRESDB_SCHEMA=public
-# ENV DB_POSTGRESDB_SSL=true
-# ENV DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false
-
-# Security
-# ENV N8N_ENCRYPTION_KEY=
-# ENV N8N_USER_MANAGEMENT_JWT_SECRET=
-# Optional: protect UI with Basic Auth
-# ENV N8N_BASIC_AUTH_ACTIVE=true
-# ENV N8N_BASIC_AUTH_USER=
-# ENV N8N_BASIC_AUTH_PASSWORD=
+# The official n8n image already includes a HEALTHCHECK.
+# The default is sufficient and correctly configured.

@@ -1,38 +1,52 @@
 services:
   n8n:
-    image: n8nio/n8n:1.53.1
+    # UPDATED: Use a recent, stable version of n8n
+    image: n8nio/n8n:1.60.0
     container_name: N8N-Infrastructure
     restart: unless-stopped
     env_file:
       - ../config/.env
     ports:
-      - "6543:6543"
+      # The host port (left) can be changed, but the container port (right)
+      # should match the N8N_PORT environment variable. 5678 is the n8n default.
+      - "${N8N_PORT_LOCAL:-6543}:5678"
     environment:
-      # Force SSL for DB
-      - DB_POSTGRESDB_SSL=true
-      # Database port
-      - DB_POSTGRESDB_PORT=6543
-      # Community nodes
+      # --- Database Settings ---
+      # All sensitive DB credentials (HOST, DB, USER, PASS) should be in .env
+      - DB_POSTGRESDB_SSL=${DB_SSL:-true}
+      # FIXED: Corrected default PostgreSQL port
+      - DB_POSTGRESDB_PORT=${DB_PORT:-5432}
+
+      # --- Community Nodes ---
+      # FIXED: Correctly formatted as a comma-separated string
       - N8N_ENABLE_COMMUNITY_NODES=${N8N_ENABLE_COMMUNITY_NODES:-true}
-      - N8N_COMMUNITY_PACKAGES=${N8N_COMMUNITY_PACKAGES:-["n8n-nodes-langchain","n8n-nodes-google","n8n-nodes-vertexai"]}
-      # n8n basics
+      - N8N_COMMUNITY_PACKAGES=${N8N_COMMUNITY_PACKAGES:-n8n-nodes-langchain,n8n-nodes-google,n8n-nodes-vertexai}
+
+      # --- n8n Core Settings ---
+      # These are read from the .env file, with sane defaults for local dev.
       - N8N_HOST=${N8N_HOST:-localhost}
-      - N8N_PORT=${N8N_PORT:-6543}
+      - N8N_PORT=5678 # n8n's internal port
       - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-      - WEBHOOK_URL=${WEBHOOK_URL:-https://danilonovais-n8n-dan.hf.space}
+      # FIXED: Webhook URL now dynamically points to the local instance
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:${N8N_PORT_LOCAL:-6543}}
+
     volumes:
+      # Persists n8n data between restarts
       - n8n_data:/home/node/.n8n
+      # Mount local directories for workflow and knowledge base development
       - ../workflows:/data/workflows:rw
       - ../knowledge:/data/knowledge:rw
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:6543/healthz"]
+      # Healthcheck now correctly points to the internal n8n port
+      test: ["CMD", "curl", "-fsS", "http://localhost:5678/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5
 
-  # Optional vector DB for local development (use Supabase+pgvector in prod)
+  # Optional vector DB for local development
   qdrant:
-    image: qdrant/qdrant:v1.9.1
+    # UPDATED: Use a recent, stable version of Qdrant
+    image: qdrant/qdrant:v1.10.1
     container_name: qdrant
     restart: unless-stopped
     ports:

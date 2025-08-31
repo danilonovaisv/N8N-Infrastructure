@@ -18,6 +18,7 @@
 # Environment variables
 .env
 .env.*
+config/.env
 !.env.example
 
 # OS-specific

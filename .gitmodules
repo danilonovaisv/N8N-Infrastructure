@@ -1,3 +1,4 @@
 [submodule "n8n-workflows-infra"]
 	path = n8n-workflows-infra
 	url = https://github.com/danilonovaisv/n8n-workflows-infra.git
+	ignore = untracked

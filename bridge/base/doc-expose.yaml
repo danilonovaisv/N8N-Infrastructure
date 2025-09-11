@@ -1,0 +1,18 @@
+#! doc-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: doc
+    namespace: n8n-infrastructure
+    labels:
+        com.docker.compose.project: n8n-infrastructure
+        com.docker.compose.service: doc
+spec:
+    selector:
+        com.docker.compose.project: n8n-infrastructure
+        com.docker.compose.service: doc
+    ports:
+        - name: doc-8000
+          port: 8000
+          targetPort: doc-8000

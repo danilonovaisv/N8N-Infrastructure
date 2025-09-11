@@ -1,0 +1,8 @@
+#! 0-n8n-infrastructure-namespace.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: n8n-infrastructure
+    labels:
+        com.docker.compose.project: n8n-infrastructure

@@ -1,0 +1,32 @@
+#! doc-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: doc
+    namespace: n8n-infrastructure
+    labels:
+        com.docker.compose.project: n8n-infrastructure
+        com.docker.compose.service: doc
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: n8n-infrastructure
+            com.docker.compose.service: doc
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: n8n-infrastructure
+                com.docker.compose.service: doc
+                com.docker.compose.network.default: "true"
+        spec:
+            containers:
+                - name: doc
+                  image: workflows-doc:latest
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                    - name: doc-8000
+                      containerPort: 8000

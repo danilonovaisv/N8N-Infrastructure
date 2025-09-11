@@ -1,0 +1,21 @@
+# check if there is at least one published port
+
+#! doc-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: doc-published
+    namespace: n8n-infrastructure
+    labels:
+        com.docker.compose.project: n8n-infrastructure
+        com.docker.compose.service: doc
+spec:
+    selector:
+        com.docker.compose.project: n8n-infrastructure
+        com.docker.compose.service: doc
+    ports:
+        - name: doc-8000
+          port: 8000
+          protocol: TCP
+          targetPort: doc-8000

@@ -124,6 +124,41 @@ Many workflow JSON files are conveniently named with the service name, often sep
 
 ## 🛠 Usage Instructions
 
+### Git Submodules
+This repository uses Git submodules:
+
+- `n8n-workflows-infra` (direct submodule)
+- `n8n-workflows-infra/n8n-workflows` (nested submodule)
+
+Common commands:
+
+```bash
+# Clone with submodules
+git clone https://github.com/danilonovaisv/N8N-Infrastructure.git
+cd N8N-Infrastructure
+git submodule update --init --recursive
+
+# Pull latest and update submodules
+git pull --rebase
+git submodule update --init --recursive
+
+# If a submodule has new commits you want to fetch
+git submodule foreach git fetch --all
+git submodule update --recursive --remote   # track submodules' upstream branches
+
+# Make and push changes inside a submodule
+cd n8n-workflows-infra                 # or nested: cd n8n-workflows-infra/n8n-workflows
+# ... edit files ...
+git add -A && git commit -m "feat: your change"
+git push origin HEAD:main
+
+# Update superproject pointer and push
+cd -
+git add n8n-workflows-infra            # or the nested path if changed
+git commit -m "chore: bump submodule pointer"
+git push origin HEAD:main
+```
+
 ### Option 1: Modern Fast System (Recommended)
 ```bash
 # Clone repository

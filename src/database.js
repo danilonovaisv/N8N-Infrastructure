@@ -644,7 +644,11 @@ class WorkflowDatabase {
 
           // Load raw workflow JSON
           try {
-            const workflowPath = path.join(this.workflowsDir, filename);
+            const workflowPath = path.resolve(this.workflowsDir, filename);
+            // Ensure the resolved path is contained within the workflowsDir
+            if (!workflowPath.startsWith(path.resolve(this.workflowsDir + path.sep))) {
+              throw new Error('Path traversal detected');
+            }
             const rawWorkflow = fs.readJsonSync(workflowPath);
             workflow.raw_workflow = rawWorkflow;
           } catch (error) {

@@ -31,29 +31,50 @@ jobs:
           SPACE_URL: ${{ secrets.SPACE_URL }}
         run: |
           python - << 'PY'
-          import os, sys, time
-          from huggingface_hub import HfApi
+          import os, sys, time, traceback
+          from huggingface_hub import HfApi, HfHubHTTPError
           token = os.environ.get('HF_TOKEN')
           space = os.environ.get('HF_SPACE_NAME')
           if not token or not space:
-              raise SystemExit('HF_TOKEN and HF_SPACE_NAME secrets are required')
+              print('❌ Missing required secrets. Please set HF_TOKEN and HF_SPACE_NAME in GitHub → Settings → Secrets and variables → Actions', file=sys.stderr)
+              sys.exit(1)
           api = HfApi(token=token)
           print(f"Restarting Space: {space}")
-          api.restart_space(repo_id=space)
+          try:
+              api.restart_space(repo_id=space)
+          except HfHubHTTPError as e:
+              print(f"restart_space failed: {e}")
+              print('Attempting to request a build...')
+              try:
+                  api.request_space_build(repo_id=space)
+              except Exception as e2:
+                  print('request_space_build also failed:')
+                  traceback.print_exc()
+                  print('\n➡️  Check that:')
+                  print(' - HF_TOKEN is valid and has admin/write access to the Space')
+                  print(' - HF_SPACE_NAME is in the form "owner/space"')
+                  sys.exit(1)
           # Wait for space to be RUNNING
           timeout = time.time() + 900  # 15 minutes
           last_state = None
           while time.time() < timeout:
-              info = api.space_info(repo_id=space)
-              state = info.runtime and info.runtime.stage.value or 'unknown'
+              try:
+                  info = api.space_info(repo_id=space)
+              except Exception as e:
+                  print(f"space_info error: {e}")
+                  time.sleep(10)
+                  continue
+              state = getattr(getattr(info, 'runtime', None), 'stage', None)
+              state = getattr(state, 'value', None) or 'unknown'
               if state != last_state:
                   print(f"Space state: {state}")
                   last_state = state
               if state == 'RUNNING':
-                  print('Space is RUNNING')
+                  print('✅ Space is RUNNING')
                   sys.exit(0)
               time.sleep(10)
-          raise SystemExit('Timed out waiting for Space to be RUNNING')
+          print('❌ Timed out waiting for Space to be RUNNING')
+          sys.exit(1)
           PY
 
       - name: Optional health check on Space URL

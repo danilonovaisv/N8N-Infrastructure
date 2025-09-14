@@ -1,0 +1,19 @@
+#! qdrant-service.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: qdrant-published
+    namespace: docker
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: qdrant
+spec:
+    selector:
+        com.docker.compose.project: docker
+        com.docker.compose.service: qdrant
+    ports:
+        - name: qdrant-6333
+          port: 6333
+          protocol: TCP
+          targetPort: qdrant-6333

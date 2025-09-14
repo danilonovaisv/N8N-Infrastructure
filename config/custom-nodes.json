@@ -1,0 +1,44 @@
+{
+  "name": "n8n-custom-configuration",
+  "version": "1.0.0",
+  "description": "Custom configuration for n8n automation platform",
+  "customNodes": [
+    {
+      "name": "@n8n/n8n-nodes-langchain",
+      "version": "latest",
+      "description": "LangChain integration nodes for AI workflows"
+    },
+    {
+      "name": "n8n-nodes-google-vertex-ai",
+      "version": "latest", 
+      "description": "Google Vertex AI integration"
+    },
+    {
+      "name": "n8n-nodes-supabase",
+      "version": "latest",
+      "description": "Supabase database operations"
+    },
+    {
+      "name": "n8n-nodes-vector-store",
+      "version": "latest",
+      "description": "Vector database operations for embeddings"
+    }
+  ],
+  "credentialTypes": [
+    {
+      "name": "googleCloudApi",
+      "displayName": "Google Cloud API",
+      "documentationUrl": "https://cloud.google.com/docs/authentication"
+    },
+    {
+      "name": "supabaseApi", 
+      "displayName": "Supabase API",
+      "documentationUrl": "https://supabase.com/docs/guides/api"
+    },
+    {
+      "name": "openAiApi",
+      "displayName": "OpenAI API",
+      "documentationUrl": "https://platform.openai.com/docs/api-reference"
+    }
+  ]
+}

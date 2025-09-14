@@ -1,0 +1,21 @@
+#! qdrant-expose.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Service
+metadata:
+    name: qdrant
+    namespace: docker
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: qdrant
+spec:
+    selector:
+        com.docker.compose.project: docker
+        com.docker.compose.service: qdrant
+    ports:
+        - name: qdrant-6334
+          port: 6334
+          targetPort: qdrant-6334
+        - name: qdrant-6333
+          port: 6333
+          targetPort: qdrant-6333

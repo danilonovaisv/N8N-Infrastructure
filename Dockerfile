@@ -1,23 +1,27 @@
-FROM node:24-slim
+# Use the official n8n image, pinning a specific version for stability.
+# This image is already optimized, secure (runs as non-root), and includes healthchecks.
+FROM n8nio/n8n:1.53.1
 
-# Install Python 3 and pip
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       python3 \
-       python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+# Hugging Face Spaces automatically sets the PORT environment variable.
+# n8n will listen on this port by default. No ARG/ENV for PORT is needed.
 
-WORKDIR /app
+# Set environment variables that are safe and necessary for the build.
+# All sensitive data (DB credentials, API keys) should be set as secrets
+# in the Hugging Face Space repository settings.
 
-# Install Python dependencies first for better layer caching
-COPY requirements.txt /app/
-RUN pip3 install --no-cache-dir -r requirements.txt
+# --- Production-Ready Settings ---
 
-# Copy the rest of the application
-COPY . /app
+# For detailed execution logs for debugging failed runs
+ENV EXECUTIONS_DATA_SAVE_ON_ERROR=all
+# Save resources by not storing data for successful runs
+ENV EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+# Enable automatic cleanup of old execution data
+ENV EXECUTIONS_DATA_PRUNE=true
+# Keep execution data for 14 days (336 hours)
+ENV EXECUTIONS_DATA_MAX_AGE=336
 
-# Expose the default API port
-EXPOSE 8000
+# Enable Prometheus metrics endpoint
+ENV N8N_METRICS=true
 
-# Run the FastAPI server (respects HOST/PORT env vars; good for HF Spaces)
-ENTRYPOINT ["python3", "run.py"]
+# The official n8n image already includes a HEALTHCHECK.
+# The default is sufficient and correctly configured.

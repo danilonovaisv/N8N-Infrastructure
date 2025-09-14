@@ -5,17 +5,18 @@ services:
     container_name: N8N-Infrastructure
     restart: unless-stopped
     env_file:
-      - ../config/.env
+      - ./config/.env
     ports:
       # The host port (left) can be changed, but the container port (right)
       # should match the N8N_PORT environment variable. 5678 is the n8n default.
-      - "${N8N_PORT_LOCAL:-6543}:5678"
+      - "${N8N_PORT_LOCAL:-5678}:5678"
     environment:
       # --- Database Settings ---
       # All sensitive DB credentials (HOST, DB, USER, PASS) should be in .env
-      - DB_POSTGRESDB_SSL=${DB_SSL:-true}
-      # FIXED: Corrected default PostgreSQL port
-      - DB_POSTGRESDB_PORT=${DB_PORT:-5432}
+      - DB_POSTGRESDB_SSL=${DB_POSTGRESDB_SSL:-true}
+      # Align with Supabase pooler default (6543) unless overridden
+      - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT:-6543}
+      - DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=${DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED:-false}
 
       # --- Community Nodes ---
       # FIXED: Correctly formatted as a comma-separated string
@@ -34,8 +35,8 @@ services:
       # Persists n8n data between restarts
       - n8n_data:/home/node/.n8n
       # Mount local directories for workflow and knowledge base development
-      - ../workflows:/data/workflows:rw
-      - ../knowledge:/data/knowledge:rw
+      - ./workflows:/data/workflows:rw
+      - ./knowledge:/data/knowledge:rw
     healthcheck:
       # Healthcheck now correctly points to the internal n8n port
       test: ["CMD", "curl", "-fsS", "http://localhost:5678/healthz"]

@@ -1,0 +1,42 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install huggingface_hub
+        run: |
+          python -m pip install --upgrade pip
+          pip install huggingface_hub
+
+      - name: Restart Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
+          python - << 'PY'
+          import os
+          from huggingface_hub import HfApi
+          token = os.environ.get('HF_TOKEN')
+          space = os.environ.get('HF_SPACE_NAME')
+          if not token or not space:
+              raise SystemExit('HF_TOKEN and HF_SPACE_NAME secrets are required')
+          api = HfApi(token=token)
+          # Trigger a restart/rebuild of the Space (Docker runtime will rebuild from repo)
+          api.restart_space(repo_id=space)
+          print(f"Requested restart for Space: {space}")
+          PY
+

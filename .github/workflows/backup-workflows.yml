@@ -1,0 +1,38 @@
+name: Backup n8n Workflows
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create backup directory
+        run: mkdir -p backup
+
+      - name: Fetch workflows JSON
+        env:
+          N8N_BASE_URL: ${{ secrets.N8N_BASE_URL }}
+          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+        run: |
+          if [ -z "${N8N_BASE_URL}" ] || [ -z "${N8N_API_KEY}" ]; then
+            echo "Missing N8N_BASE_URL or N8N_API_KEY secrets" >&2
+            exit 1
+          fi
+          ts=$(date -u +"%Y%m%d-%H%M%SZ")
+          out="backup/workflows-${ts}.json"
+          curl -fsS \
+            -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
+            "${N8N_BASE_URL%/}/rest/workflows" \
+            -o "$out"
+          echo "Saved to $out"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: n8n-workflows-backup
+          path: backup/
+          retention-days: 30
+

@@ -13,9 +13,14 @@ trap cleanup EXIT
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$ROOT_DIR/config/.env"
 
-if [ ! -f "$ENV_FILE" ]; then
-  echo "Environment file not found: $ENV_FILE" >&2
-  exit 1
+# Load environment file if present
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+else
+  echo "Environment file not found (continuing with current env): $ENV_FILE"
 fi
 
 BACKUP_INPUT="${1:-}"

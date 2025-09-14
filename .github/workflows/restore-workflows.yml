@@ -1,0 +1,64 @@
+name: Restore n8n Workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact-name:
+        description: "Artifact name (default n8n-workflows-backup)"
+        required: false
+        default: "n8n-workflows-backup"
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Download latest backup artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.inputs.artifact-name }}
+          path: backup_artifacts
+
+      - name: Restore workflows from latest JSON
+        env:
+          N8N_BASE_URL: ${{ secrets.N8N_BASE_URL }}
+          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${N8N_BASE_URL}" ] || [ -z "${N8N_API_KEY}" ]; then
+            echo "Missing N8N_BASE_URL or N8N_API_KEY secrets" >&2
+            exit 1
+          fi
+          latest_json=$(ls -1 backup_artifacts/workflows-*.json | sort | tail -n1)
+          if [ -z "$latest_json" ]; then
+            echo "No workflows backup JSON found in artifact" >&2
+            exit 1
+          fi
+          echo "Using backup file: $latest_json"
+          base_url="${N8N_BASE_URL%/}"
+          # Iterate each workflow object
+          jq -c '.data[]' "$latest_json" | while read -r wf; do
+            id=$(echo "$wf" | jq -r '.id')
+            name=$(echo "$wf" | jq -r '.name')
+            echo "Restoring: $id $name"
+            # Check if workflow exists
+            if curl -fsS -H "X-N8N-API-KEY: $N8N_API_KEY" "$base_url/rest/workflows/$id" >/dev/null; then
+              # Update existing workflow
+              echo "$wf" | \
+                curl -fsS -X PATCH -H 'Content-Type: application/json' -H "X-N8N-API-KEY: $N8N_API_KEY" \
+                  -d @- "$base_url/rest/workflows/$id" >/dev/null
+              echo "  -> Updated existing workflow $id"
+            else
+              # Create new workflow (strip id to let server assign)
+              echo "$wf" | jq 'del(.id)' | \
+                curl -fsS -X POST -H 'Content-Type: application/json' -H "X-N8N-API-KEY: $N8N_API_KEY" \
+                  -d @- "$base_url/rest/workflows" >/dev/null
+              echo "  -> Created new workflow for $name"
+            fi
+          done
+

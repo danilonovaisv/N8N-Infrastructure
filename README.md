@@ -1,527 +1,176 @@
-# ⚡ N8N Workflow Collection & Documentation
+---
+license: apache-2.0
+title: danilonovais/n8n-dan
+sdk: docker
+emoji: 🚀
+colorFrom: purple
+colorTo: blue
+pinned: true
+short_description: ' **n8n**: Self-hosted workflow automation platform.'
+---
 
-A professionally organized collection of **2,053 n8n workflows** with a lightning-fast documentation system that provides instant search, analysis, and browsing capabilities.
+# n8n Infrastructure Repository
 
-> **⚠️ IMPORTANT NOTICE (Aug 14, 2025):** Repository history has been rewritten due to DMCA compliance. If you have a fork or local clone, please see [Issue #X](https://github.com/Zie619/n8n-workflows/issues) for instructions on syncing your copy.
-> 
-## Support My Work
+> **⚠️ Security Warning**
+> A `.env` file with sensitive credentials was previously committed to this repository. Although the file has been removed, the credentials may still be present in the Git history. **It is crucial that you scrub the Git history of this repository and rotate all exposed secrets (API keys, database passwords, etc.) immediately.** Tools like [bfg-repo-cleaner](https://rtyley.github.io/bfg-repo-cleaner/) can help with this process.
 
-[![Buy Me a Coffee](https://img.shields.io/badge/-Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black&style=flat)](https://www.buymeacoffee.com/zie619)
+A comprehensive, production-ready infrastructure setup for deploying n8n automation platform on Hugging Face Spaces with AI integrations and automated knowledge management.
 
-If you'd like to say thanks, consider buying me a coffee—your support helps me keep improving this project!
+## 🚀 Features
 
-## 🚀 **NEW: High-Performance Documentation System**
+### Core Platform
+- **n8n**: Self-hosted workflow automation platform.
+- **Hugging Face Spaces**: Docker-based deployment with automatic scaling.
+- **Supabase PostgreSQL**: SSL-encrypted database with pgvector extension.
+- **ChromaDB**: Vector store for embeddings and AI-powered search.
 
-**Experience 100x performance improvement over traditional documentation!**
+### AI & Automation
+- **LangChain Integration**: Advanced AI workflow capabilities.
+- **Multi-Model Support**: OpenAI GPT, Anthropic Claude, Google Vertex AI.
+- **Vector Knowledge Base**: Automated content ingestion with embeddings.
+- **Community Nodes**: Extended functionality with custom AI nodes.
 
-### Quick Start - Fast Documentation System
+### DevOps & Security
+- **GitHub Actions CI/CD**: Automated deployment and maintenance.
+- **Optimized Docker Setup**: Non-root user and healthchecks for enhanced security and reliability.
+- **Automated Full Backups**: Daily backups of database, workflows, and credentials.
+- **Database Security**: Row Level Security (RLS) enabled by default.
+- **Knowledge Sync**: Multi-repository content synchronization.
+
+## 📋 Prerequisites
+
+- **GitHub Account**
+- **Hugging Face Account**
+- **Supabase Account**
+- **Git** and **Docker** installed locally
+
+## 🛠️ Quick Start
+
+### 1. Repository Setup
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Clone the repository
+git clone https://github.com/your-username/n8n-infra.git
+cd n8n-infra
 
-# Start the fast API server
-python run.py
+# Create your local environment configuration from the example
+cp config/.env.example config/.env
 
-# Open in browser
-http://localhost:8000
+# Edit config/.env with your actual values.
+# NEVER commit this file to Git.
 ```
 
-**Features:**
-- ⚡ **Sub-100ms response times** with SQLite FTS5 search
-- 🔍 **Instant full-text search** with advanced filtering
-- 📱 **Responsive design** - works perfectly on mobile
-- 🌙 **Dark/light themes** with system preference detection
-- 📊 **Live statistics** - 365 unique integrations, 29,445 total nodes
-- 🎯 **Smart categorization** by trigger type and complexity
-- 🎯 **Use case categorization** by service name mapped to categories
-- 📄 **On-demand JSON viewing** and download
-- 🔗 **Mermaid diagram generation** for workflow visualization
-- 🔄 **Real-time workflow naming** with intelligent formatting
-
-### Performance Comparison
-
-| Metric | Old System | New System | Improvement |
-|--------|------------|------------|-------------|
-| **File Size** | 71MB HTML | <100KB | **700x smaller** |
-| **Load Time** | 10+ seconds | <1 second | **10x faster** |
-| **Search** | Client-side only | Full-text with FTS5 | **Instant** |
-| **Memory Usage** | ~2GB RAM | <50MB RAM | **40x less** |
-| **Mobile Support** | Poor | Excellent | **Fully responsive** |
-
----
-
-## 📂 Repository Organization
-
-### Workflow Collection
-- **2,053 workflows** with meaningful, searchable names
-- **365 unique integrations** across popular platforms
-- **29,445 total nodes** with professional categorization
-- **Quality assurance** - All workflows analyzed and categorized
-
-### Advanced Naming System ✨
-Our intelligent naming system converts technical filenames into readable titles:
-- **Before**: `2051_Telegram_Webhook_Automation_Webhook.json`
-- **After**: `Telegram Webhook Automation`
-- **100% meaningful names** with smart capitalization
-- **Automatic integration detection** from node analysis
-
-### Use Case Category ✨
-
-The search interface includes a dropdown filter that lets you browse 2,000+ workflows by category.
-
-The system includes an automated categorization feature that organizes workflows by service categories to make them easier to discover and filter.
-
-### How Categorization Works
-
-1. **Run the categorization script**
-   ```
-   python create_categories.py
-   ```
-
-2. **Service Name Recognition**
-   The script analyzes each workflow JSON filename to identify recognized service names (e.g., "Twilio", "Slack", "Gmail", etc.)
-
-3. **Category Mapping**
-   Each recognized service name is matched to its corresponding category using the definitions in `context/def_categories.json`. For example:
-   - Twilio → Communication & Messaging
-   - Gmail → Communication & Messaging  
-   - Airtable → Data Processing & Analysis
-   - Salesforce → CRM & Sales
-
-4. **Search Categories Generation**
-   The script produces a `search_categories.json` file that contains the categorized workflow data
-
-5. **Filter Interface**
-   Users can then filter workflows by category in the search interface, making it easier to find workflows for specific use cases
-
-### Available Categories
-
-The categorization system includes the following main categories:
-- AI Agent Development
-- Business Process Automation
-- Cloud Storage & File Management
-- Communication & Messaging
-- Creative Content & Video Automation
-- Creative Design Automation
-- CRM & Sales
-- Data Processing & Analysis
-- E-commerce & Retail
-- Financial & Accounting
-- Marketing & Advertising Automation
-- Project Management
-- Social Media Management
-- Technical Infrastructure & DevOps
-- Web Scraping & Data Extraction
-
-### Contribute Categories
-
-You can help expand the categorization by adding more service-to-category mappings (e.g., Twilio → Communication & Messaging) in context/defs_categories.json.
-
-Many workflow JSON files are conveniently named with the service name, often separated by underscores (_).
-
-
----
-
-## 🛠 Usage Instructions
-
-### Git Submodules
-This repository uses Git submodules:
-
-- `n8n-workflows-infra` (direct submodule)
-- `n8n-workflows-infra/n8n-workflows` (nested submodule)
-
-Common commands:
-
+### 2. Local Development
 ```bash
-# Clone with submodules
-git clone https://github.com/danilonovaisv/N8N-Infrastructure.git
-cd N8N-Infrastructure
-git submodule update --init --recursive
+# Start the full stack locally
+docker compose -f docker/docker-compose.yml up -d
 
-# Pull latest and update submodules
-git pull --rebase
-git submodule update --init --recursive
+# Check service status
+docker compose -f docker/docker-compose.yml ps
 
-# If a submodule has new commits you want to fetch
-git submodule foreach git fetch --all
-git submodule update --recursive --remote   # track submodules' upstream branches
-
-# Make and push changes inside a submodule
-cd n8n-workflows-infra                 # or nested: cd n8n-workflows-infra/n8n-workflows
-# ... edit files ...
-git add -A && git commit -m "feat: your change"
-git push origin HEAD:main
-
-# Update superproject pointer and push
-cd -
-git add n8n-workflows-infra            # or the nested path if changed
-git commit -m "chore: bump submodule pointer"
-git push origin HEAD:main
+# View logs
+docker compose -f docker/docker-compose.yml logs -f n8n
 ```
 
-### Option 1: Modern Fast System (Recommended)
+### 3. Hugging Face Deployment
+The repository is configured to automatically deploy to a Hugging Face Space on every push to the `main` branch.
 ```bash
-# Clone repository
-git clone <repo-url>
-cd n8n-workflows
+# Trigger deployment via GitHub Actions
+git push origin main
 
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Start the documentation server
-python run.py
-
-# Browse workflows at http://localhost:8000
-# - Instant search across 2,053 workflows
-# - Professional responsive interface
-# - Real-time workflow statistics
+# Or deploy manually
+gh workflow run deploy-to-hf.yml
 ```
 
-### Option 2: Development Mode
+## 📊 Database Setup
+The authoritative schema is defined in `supabase/schema.sql`. It is recommended to apply this schema to your Supabase project via the Supabase UI SQL Editor or by using Supabase migrations.
+
+Key features of the schema include:
+- A `knowledge` schema to encapsulate all knowledge base tables.
+- `documents` and `embeddings` tables for storing content and its vector embeddings.
+- A `vector_l2_ops` index on the `embeddings` table for efficient similarity search.
+- **Row Level Security (RLS)** enabled on all tables to control data access. By default, data is public for reading, but only the `service_role` can write data.
+
+## 💾 Backup & Recovery
+
+### Automated Backups
+The `.github/workflows/backup-workflows.yml` GitHub Action runs nightly to create a full backup of your n8n instance. Each backup is a `.tar.gz` archive that includes:
+- A full dump of the PostgreSQL database.
+- A JSON export of all your n8n workflows.
+- A copy of your `config` directory, which contains n8n credentials and settings.
+
+### Manual Backup
+To create a backup manually, you can run the `backup.sh` script. This requires you to have the necessary environment variables set (see `config/.env.example`).
 ```bash
-# Start with auto-reload for development
-python run.py --dev
+# Make sure the script is executable
+chmod +x scripts/backup.sh
 
-# Or specify custom host/port
-python run.py --host 0.0.0.0 --port 3000
-
-# Force database reindexing
-python run.py --reindex
+# Run the script
+./scripts/backup.sh
 ```
 
-### Deploy to Hugging Face Spaces (Docker)
+### Restore from Backup
+To restore your n8n instance from a backup, use the `restore.sh` script.
 
-- Create a new Space and choose the "Docker" runtime.
-- Point the Space to this repository (it contains a ready-to-use Dockerfile).
-- Environment variables respected by the server:
-  - `PORT`: set automatically by Spaces. The server binds to it.
-  - `HOST`: optional, defaults to `0.0.0.0`.
-  - `PUBLIC_BASE_URL`: optional (e.g. `https://<your-space>.hf.space`). If set, startup logs and links use this base URL.
+**Warning:** This process will overwrite your existing database and configuration.
 
-Local simulation of Spaces:
+1.  **Stop your n8n container** to prevent data corruption.
+    ```bash
+    docker compose -f docker/docker-compose.yml stop n8n
+    ```
+2.  Run the `restore.sh` script, providing the path to your backup file.
+    ```bash
+    # Make sure the script is executable
+    chmod +x scripts/restore.sh
 
+    # Run the restore script
+    BACKUP_FILE=workflows/backup/n8n-backup-YYYYMMDD-HHMMSS.tar.gz ./scripts/restore.sh
+    ```
+3.  The script will guide you through the process. It will restore the database and the `config` directory.
+4.  For workflows, the script will provide a `restored_workflows_*.json` file. You will need to import this file manually via the n8n UI or by using the `n8n-cli`.
+5.  **Restart your n8n container.**
+    ```bash
+    docker compose -f docker/docker-compose.yml start n8n
+    ```
+
+## 🔒 Security
+This repository has been optimized with security in mind.
+
+- **Credential Management**: A `.gitignore` file is included to prevent committing sensitive files like `.env`. An example file `config/.env.example` is provided.
+- **Container Security**: The `Dockerfile` is configured to run n8n as a non-root user, reducing the container's attack surface.
+- **Database Security**: Row Level Security is enabled in the database schema (`supabase/schema.sql`).
+- **Secret Rotation**: As mentioned in the security warning, it is critical to rotate any secrets that may have been exposed in the Git history.
+
+## 🔧 Maintenance
+
+### Health Monitoring
 ```bash
-docker build -t n8n-infra .
-docker run --rm -p 7860:7860 \
-  -e PORT=7860 \
-  -e PUBLIC_BASE_URL="http://localhost:7860" \
-  n8n-infra
+# Check container health (includes a healthcheck)
+docker compose -f docker/docker-compose.yml ps
+
+# View application logs
+docker compose -f docker/docker-compose.yml logs -f n8n
 ```
 
-Then open:
-- Health: `http://localhost:7860/health`
-- Docs: `http://localhost:7860/docs`
-
-### Import Workflows into n8n
-```bash
-# Use the Python importer (recommended)
-python import_workflows.py
-
-# Or manually import individual workflows:
-# 1. Open your n8n Editor UI
-# 2. Click menu (☰) → Import workflow
-# 3. Choose any .json file from the workflows/ folder
-# 4. Update credentials/webhook URLs before running
+### Performance Tuning
+**Container Resources**: Resource limits are defined in `docker-compose.yml` to prevent resource exhaustion during local development.
+```yaml
+# docker-compose.yml resource limits
+services:
+  n8n:
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "1.0"
+          memory: 2G
 ```
 
----
-
-## 📊 Workflow Statistics
-
-### Current Collection Stats
-- **Total Workflows**: 2,053 automation workflows
-- **Active Workflows**: 215 (10.5% active rate)
-- **Total Nodes**: 29,445 (avg 14.3 nodes per workflow)
-- **Unique Integrations**: 365 different services and APIs
-- **Database**: SQLite with FTS5 full-text search
-
-### Trigger Distribution
-- **Complex**: 831 workflows (40.5%) - Multi-trigger systems
-- **Webhook**: 519 workflows (25.3%) - API-triggered automations  
-- **Manual**: 477 workflows (23.2%) - User-initiated workflows
-- **Scheduled**: 226 workflows (11.0%) - Time-based executions
-
-### Complexity Analysis
-- **Low (≤5 nodes)**: ~35% - Simple automations
-- **Medium (6-15 nodes)**: ~45% - Standard workflows
-- **High (16+ nodes)**: ~20% - Complex enterprise systems
-
-### Popular Integrations
-Top services by usage frequency:
-- **Communication**: Telegram, Discord, Slack, WhatsApp
-- **Cloud Storage**: Google Drive, Google Sheets, Dropbox
-- **Databases**: PostgreSQL, MySQL, MongoDB, Airtable
-- **AI/ML**: OpenAI, Anthropic, Hugging Face
-- **Development**: HTTP Request, Webhook, GraphQL
+## 🔄 CI/CD Pipeline
+The CI/CD pipelines are defined in the `.github/workflows` directory and are optimized for:
+- **Efficiency**: The backup workflow uses a pre-built Docker container, and the knowledge sync workflow uses dependency caching to speed up execution.
+- **Reliability**: The knowledge sync workflow uses `npm ci` for deterministic builds.
 
 ---
-
-## 🔍 Advanced Search Features
-
-### Smart Search Categories
-Our system automatically categorizes workflows into 12 service categories:
-
-#### Available Categories:
-- **messaging**: Telegram, Discord, Slack, WhatsApp, Teams
-- **ai_ml**: OpenAI, Anthropic, Hugging Face 
-- **database**: PostgreSQL, MySQL, MongoDB, Redis, Airtable
-- **email**: Gmail, Mailjet, Outlook, SMTP/IMAP
-- **cloud_storage**: Google Drive, Google Docs, Dropbox, OneDrive
-- **project_management**: Jira, GitHub, GitLab, Trello, Asana
-- **social_media**: LinkedIn, Twitter/X, Facebook, Instagram
-- **ecommerce**: Shopify, Stripe, PayPal
-- **analytics**: Google Analytics, Mixpanel
-- **calendar_tasks**: Google Calendar, Cal.com, Calendly
-- **forms**: Typeform, Google Forms, Form Triggers
-- **development**: Webhook, HTTP Request, GraphQL, SSE
-
-### API Usage Examples
-```bash
-# Search workflows by text
-curl "http://localhost:8000/api/workflows?q=telegram+automation"
-
-# Filter by trigger type and complexity
-curl "http://localhost:8000/api/workflows?trigger=Webhook&complexity=high"
-
-# Find all messaging workflows
-curl "http://localhost:8000/api/workflows/category/messaging"
-
-# Get database statistics
-curl "http://localhost:8000/api/stats"
-
-# Browse available categories
-curl "http://localhost:8000/api/categories"
-```
-
----
-
-## 🏗 Technical Architecture
-
-### Modern Stack
-- **SQLite Database** - FTS5 full-text search with 365 indexed integrations
-- **FastAPI Backend** - RESTful API with automatic OpenAPI documentation
-- **Responsive Frontend** - Modern HTML5 with embedded CSS/JavaScript
-- **Smart Analysis** - Automatic workflow categorization and naming
-
-### Key Features
-- **Change Detection** - MD5 hashing for efficient re-indexing
-- **Background Processing** - Non-blocking workflow analysis
-- **Compressed Responses** - Gzip middleware for optimal speed
-- **Error Handling** - Graceful degradation and comprehensive logging
-- **Mobile Optimization** - Touch-friendly interface design
-
-### Database Performance
-```sql
--- Optimized schema for lightning-fast queries
-CREATE TABLE workflows (
-    id INTEGER PRIMARY KEY,
-    filename TEXT UNIQUE,
-    name TEXT,
-    active BOOLEAN,
-    trigger_type TEXT,
-    complexity TEXT,
-    node_count INTEGER,
-    integrations TEXT,  -- JSON array of 365 unique services
-    description TEXT,
-    file_hash TEXT,     -- MD5 for change detection
-    analyzed_at TIMESTAMP
-);
-
--- Full-text search with ranking
-CREATE VIRTUAL TABLE workflows_fts USING fts5(
-    filename, name, description, integrations, tags,
-    content='workflows', content_rowid='id'
-);
-```
-
----
-
-## 🔧 Setup & Requirements
-
-### System Requirements
-- **Python 3.7+** - For running the documentation system
-- **Modern Browser** - Chrome, Firefox, Safari, Edge
-- **50MB Storage** - For SQLite database and indexes
-- **n8n Instance** - For importing and running workflows
-
-### Installation
-```bash
-# Clone repository
-git clone <repo-url>
-cd n8n-workflows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start documentation server
-python run.py
-
-# Access at http://localhost:8000
-```
-
-### Development Setup
-```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# or .venv\Scripts\activate  # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run with auto-reload for development
-python api_server.py --reload
-
-# Force database reindexing
-python workflow_db.py --index --force
-```
-
----
-
-## 📋 Naming Convention
-
-### Intelligent Formatting System
-Our system automatically converts technical filenames to user-friendly names:
-
-```bash
-# Automatic transformations:
-2051_Telegram_Webhook_Automation_Webhook.json → "Telegram Webhook Automation"
-0250_HTTP_Discord_Import_Scheduled.json → "HTTP Discord Import Scheduled"  
-0966_OpenAI_Data_Processing_Manual.json → "OpenAI Data Processing Manual"
-```
-
-### Technical Format
-```
-[ID]_[Service1]_[Service2]_[Purpose]_[Trigger].json
-```
-
-### Smart Capitalization Rules
-- **HTTP** → HTTP (not Http)
-- **API** → API (not Api)  
-- **webhook** → Webhook
-- **automation** → Automation
-- **scheduled** → Scheduled
-
----
-
-## 🚀 API Documentation
-
-### Core Endpoints
-- `GET /` - Main workflow browser interface
-- `GET /api/stats` - Database statistics and metrics
-- `GET /api/workflows` - Search with filters and pagination
-- `GET /api/workflows/{filename}` - Detailed workflow information
-- `GET /api/workflows/{filename}/download` - Download workflow JSON
-- `GET /api/workflows/{filename}/diagram` - Generate Mermaid diagram
-
-### Advanced Search
-- `GET /api/workflows/category/{category}` - Search by service category
-- `GET /api/categories` - List all available categories
-- `GET /api/integrations` - Get integration statistics
-- `POST /api/reindex` - Trigger background reindexing
-
-### Response Examples
-```json
-// GET /api/stats
-{
-  "total": 2053,
-  "active": 215,
-  "inactive": 1838,
-  "triggers": {
-    "Complex": 831,
-    "Webhook": 519,
-    "Manual": 477,
-    "Scheduled": 226
-  },
-  "total_nodes": 29445,
-  "unique_integrations": 365
-}
-```
-
----
-
-## 🤝 Contributing
-
-### Adding New Workflows
-1. **Export workflow** as JSON from n8n
-2. **Name descriptively** following the established pattern
-3. **Add to workflows/** directory
-4. **Remove sensitive data** (credentials, personal URLs)
-5. **Run reindexing** to update the database
-
-### Quality Standards
-- ✅ Workflow must be functional and tested
-- ✅ Remove all credentials and sensitive data
-- ✅ Follow naming convention for consistency
-- ✅ Verify compatibility with recent n8n versions
-- ✅ Include meaningful description or comments
-
----
-
-## ⚠️ Important Notes
-
-### Security & Privacy
-- **Review before use** - All workflows shared as-is for educational purposes
-- **Update credentials** - Replace API keys, tokens, and webhooks
-- **Test safely** - Verify in development environment first
-- **Check permissions** - Ensure proper access rights for integrations
-
-### Compatibility
-- **n8n Version** - Compatible with n8n 1.0+ (most workflows)
-- **Community Nodes** - Some workflows may require additional node installations
-- **API Changes** - External services may have updated their APIs since creation
-- **Dependencies** - Verify required integrations before importing
-
----
-
-## 📚 Resources & References
-
-### Workflow Sources
-This comprehensive collection includes workflows from:
-- **Official n8n.io** - Documentation and community examples
-- **GitHub repositories** - Open source community contributions  
-- **Blog posts & tutorials** - Real-world automation patterns
-- **User submissions** - Tested and verified workflows
-- **Enterprise use cases** - Business process automations
-
-### Learn More
-- [n8n Documentation](https://docs.n8n.io/) - Official documentation
-- [n8n Community](https://community.n8n.io/) - Community forum and support
-- [Workflow Templates](https://n8n.io/workflows/) - Official template library
-- [Integration Docs](https://docs.n8n.io/integrations/) - Service-specific guides
-
----
-
-## 🏆 Project Achievements
-
-### Repository Transformation
-- **2,053 workflows** professionally organized and named
-- **365 unique integrations** automatically detected and categorized
-- **100% meaningful names** (improved from basic filename patterns)
-- **Zero data loss** during intelligent renaming process
-- **Advanced search** with 12 service categories
-
-### Performance Revolution
-- **Sub-100ms search** with SQLite FTS5 full-text indexing
-- **Instant filtering** across 29,445 workflow nodes
-- **Mobile-optimized** responsive design for all devices
-- **Real-time statistics** with live database queries
-- **Professional interface** with modern UX principles
-
-### System Reliability
-- **Robust error handling** with graceful degradation
-- **Change detection** for efficient database updates
-- **Background processing** for non-blocking operations
-- **Comprehensive logging** for debugging and monitoring
-- **Production-ready** with proper middleware and security
-
----
-
-*This repository represents the most comprehensive and well-organized collection of n8n workflows available, featuring cutting-edge search technology and professional documentation that makes workflow discovery and usage a delightful experience.*
-
-**🎯 Perfect for**: Developers, automation engineers, business analysts, and anyone looking to streamline their workflows with proven n8n automations.
-
----
-
-[中文](./README_ZH.md)
-
+_This README has been updated to reflect the infrastructure audit and optimization._

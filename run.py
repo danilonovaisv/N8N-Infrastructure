@@ -79,11 +79,14 @@ def setup_database(force_reindex: bool = False) -> str:
     return db_path
 
 
-def start_server(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
+def start_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
     """Start the FastAPI server."""
-    print(f"🌐 Starting server at http://{host}:{port}")
-    print(f"📊 API Documentation: http://{host}:{port}/docs")
-    print(f"🔍 Workflow Search: http://{host}:{port}/api/workflows")
+    public_base_url = os.getenv("PUBLIC_BASE_URL")
+    base = public_base_url.rstrip("/") if public_base_url else f"http://{host}:{port}"
+
+    print(f"🌐 Starting server at {base}")
+    print(f"📊 API Documentation: {base}/docs")
+    print(f"🔍 Workflow Search: {base}/api/workflows")
     print()
     print("Press Ctrl+C to stop the server")
     print("-" * 50)
@@ -120,8 +123,8 @@ Examples:
     
     parser.add_argument(
         "--host",
-        default=os.getenv("HOST", "127.0.0.1"),
-        help="Host to bind to (env HOST overrides, default: 127.0.0.1)"
+        default=os.getenv("HOST", "0.0.0.0"),
+        help="Host to bind to (env HOST overrides, default: 0.0.0.0)"
     )
     parser.add_argument(
         "--port",

@@ -189,6 +189,29 @@ python run.py --host 0.0.0.0 --port 3000
 python run.py --reindex
 ```
 
+### Deploy to Hugging Face Spaces (Docker)
+
+- Create a new Space and choose the "Docker" runtime.
+- Point the Space to this repository (it contains a ready-to-use Dockerfile).
+- Environment variables respected by the server:
+  - `PORT`: set automatically by Spaces. The server binds to it.
+  - `HOST`: optional, defaults to `0.0.0.0`.
+  - `PUBLIC_BASE_URL`: optional (e.g. `https://<your-space>.hf.space`). If set, startup logs and links use this base URL.
+
+Local simulation of Spaces:
+
+```bash
+docker build -t n8n-infra .
+docker run --rm -p 7860:7860 \
+  -e PORT=7860 \
+  -e PUBLIC_BASE_URL="http://localhost:7860" \
+  n8n-infra
+```
+
+Then open:
+- Health: `http://localhost:7860/health`
+- Docs: `http://localhost:7860/docs`
+
 ### Import Workflows into n8n
 ```bash
 # Use the Python importer (recommended)

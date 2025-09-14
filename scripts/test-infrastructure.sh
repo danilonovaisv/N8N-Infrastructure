@@ -151,8 +151,12 @@ main() {
     else
         log_warn "Skipping Docker tests (SKIP_DOCKER set)"
     fi
-    test_environment  
-    test_scripts
+    test_environment
+    if [[ -z "${SKIP_SCRIPTS:-}" ]]; then
+        test_scripts
+    else
+        log_warn "Skipping script tests (SKIP_SCRIPTS set)"
+    fi
     test_github_actions
     test_database
     

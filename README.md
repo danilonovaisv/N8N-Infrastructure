@@ -172,5 +172,42 @@ The CI/CD pipelines are defined in the `.github/workflows` directory and are opt
 - **Efficiency**: The backup workflow uses a pre-built Docker container, and the knowledge sync workflow uses dependency caching to speed up execution.
 - **Reliability**: The knowledge sync workflow uses `npm ci` for deterministic builds.
 
+### CI Workflows & Secrets
+- Deploy to Hugging Face
+  - Workflow: `.github/workflows/deploy-to-hf.yml`
+  - Triggers: push to `main`, daily schedule, manual dispatch
+  - Secrets: `HF_TOKEN`, `HF_SPACE_NAME`, `SPACE_URL`
+  - Behavior: Restarts the Space, waits until state is `RUNNING`, optional health check at `${SPACE_URL}/healthz` or `/health`
+
+- Backup n8n + DB
+  - Workflow: `.github/workflows/backup-workflows.yml`
+  - Triggers: nightly, manual dispatch
+  - Secrets: `N8N_BASE_URL`, `N8N_API_KEY`, optional DB secrets `DB_HOST`, `DB_PORT` (6543), `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+  - Output: Artifact `n8n-backup` with DB dump(s), consolidated archive, workflow JSON files
+
+- Restore n8n + optional DB
+  - Workflow: `.github/workflows/restore-workflows.yml`
+  - Trigger: manual dispatch (input `artifact-name`, default `n8n-backup`)
+  - Secrets: `N8N_BASE_URL`, `N8N_API_KEY`, optional DB secrets as above
+  - Behavior: Restores DB if present; restores workflows via API
+
+- Apply Supabase Schema
+  - Workflow: `.github/workflows/apply-supabase-schema.yml`
+  - Trigger: manual dispatch
+  - Secrets: `DB_HOST`, `DB_PORT` (6543), `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+  - Behavior: Runs `psql` to apply `supabase/schema.sql` with SSL
+
+### Runtime Secrets (Hugging Face Space)
+- `N8N_ENCRYPTION_KEY`, `N8N_USER_MANAGEMENT_JWT_SECRET`
+- `N8N_HOST` (hostname only), `WEBHOOK_URL` (full URL)
+- Supabase: `DB_POSTGRESDB_HOST`, `DB_POSTGRESDB_PORT=6543`, `DB_POSTGRESDB_DATABASE`, `DB_POSTGRESDB_USER`, `DB_POSTGRESDB_PASSWORD`, `DB_POSTGRESDB_SSL=true`, `DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false`
+- Any provider API keys used by your workflows (OpenAI, Anthropic, etc.)
+
+### Quick Verification
+- Apply schema: run “Apply Supabase Schema” → verify `vector` extension and tables in Supabase
+- Deploy: run “Deploy to Hugging Face Spaces” → job waits until RUNNING → open `${SPACE_URL}/healthz`
+- Backup: run “Backup n8n Workflows + DB” → artifact `n8n-backup` contains `backups/` and `workflows/backup/`
+- Restore: run “Restore n8n Workflows” → workflows appear in n8n; DB restored if secrets provided
+
 ---
 _This README has been updated to reflect the infrastructure audit and optimization._

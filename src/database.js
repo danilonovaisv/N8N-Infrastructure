@@ -649,7 +649,8 @@ class WorkflowDatabase {
             workflow.raw_workflow = rawWorkflow;
           } catch (error) {
             console.error(
-              `Error loading raw workflow ${filename}:`,
+              'Error loading raw workflow %s:',
+              filename,
               error.message
             );
           }

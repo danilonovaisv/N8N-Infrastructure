@@ -119,15 +119,15 @@ Examples:
     )
     
     parser.add_argument(
-        "--host", 
-        default="127.0.0.1", 
-        help="Host to bind to (default: 127.0.0.1)"
+        "--host",
+        default=os.getenv("HOST", "127.0.0.1"),
+        help="Host to bind to (env HOST overrides, default: 127.0.0.1)"
     )
     parser.add_argument(
-        "--port", 
-        type=int, 
-        default=8000, 
-        help="Port to bind to (default: 8000)"
+        "--port",
+        type=int,
+        default=int(os.getenv("PORT", "8000")),
+        help="Port to bind to (env PORT overrides, default: 8000)"
     )
     parser.add_argument(
         "--reindex", 

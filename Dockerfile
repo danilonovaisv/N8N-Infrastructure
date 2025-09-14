@@ -19,5 +19,5 @@ COPY . /app
 # Expose the default API port
 EXPOSE 8000
 
-# Run the FastAPI server
-ENTRYPOINT ["python3", "run.py", "--host", "0.0.0.0", "--port", "8000"]
+# Run the FastAPI server (respects HOST/PORT env vars; good for HF Spaces)
+ENTRYPOINT ["python3", "run.py"]

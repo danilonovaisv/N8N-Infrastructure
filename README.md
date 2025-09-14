@@ -16,6 +16,14 @@ short_description: ' **n8n**: Self-hosted workflow automation platform.'
 
 A comprehensive, production-ready infrastructure setup for deploying n8n automation platform on Hugging Face Spaces with AI integrations and automated knowledge management.
 
+## ✅ Status Badges
+
+![Deploy to HF](https://github.com/danilonovaisv/N8N-Infrastructure/actions/workflows/deploy-to-hf.yml/badge.svg)
+![Backup n8n + DB](https://github.com/danilonovaisv/N8N-Infrastructure/actions/workflows/backup-workflows.yml/badge.svg)
+![Restore n8n](https://github.com/danilonovaisv/N8N-Infrastructure/actions/workflows/restore-workflows.yml/badge.svg)
+![Apply Supabase Schema](https://github.com/danilonovaisv/N8N-Infrastructure/actions/workflows/apply-supabase-schema.yml/badge.svg)
+![Sync Knowledge](https://github.com/danilonovaisv/N8N-Infrastructure/actions/workflows/sync-knowledge.yml/badge.svg)
+
 ## 🚀 Features
 
 ### Core Platform

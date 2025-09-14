@@ -3,6 +3,8 @@ name: Deploy to Hugging Face Spaces
 on:
   push:
     branches: [ main ]
+  schedule:
+    - cron: '0 4 * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -22,21 +24,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install huggingface_hub
 
-      - name: Restart Space
+      - name: Restart Space and wait until RUNNING
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+          SPACE_URL: ${{ secrets.SPACE_URL }}
         run: |
           python - << 'PY'
-          import os
+          import os, sys, time
           from huggingface_hub import HfApi
           token = os.environ.get('HF_TOKEN')
           space = os.environ.get('HF_SPACE_NAME')
           if not token or not space:
               raise SystemExit('HF_TOKEN and HF_SPACE_NAME secrets are required')
           api = HfApi(token=token)
-          # Trigger a restart/rebuild of the Space (Docker runtime will rebuild from repo)
+          print(f"Restarting Space: {space}")
           api.restart_space(repo_id=space)
-          print(f"Requested restart for Space: {space}")
+          # Wait for space to be RUNNING
+          timeout = time.time() + 900  # 15 minutes
+          last_state = None
+          while time.time() < timeout:
+              info = api.space_info(repo_id=space)
+              state = info.runtime and info.runtime.stage.value or 'unknown'
+              if state != last_state:
+                  print(f"Space state: {state}")
+                  last_state = state
+              if state == 'RUNNING':
+                  print('Space is RUNNING')
+                  sys.exit(0)
+              time.sleep(10)
+          raise SystemExit('Timed out waiting for Space to be RUNNING')
           PY
 
+      - name: Optional health check on Space URL
+        if: env.SPACE_URL != ''
+        env:
+          SPACE_URL: ${{ secrets.SPACE_URL }}
+        run: |
+          echo "Checking health: ${SPACE_URL%/}/healthz"
+          curl -fsS "${SPACE_URL%/}/healthz" || curl -fsS "${SPACE_URL%/}/health"

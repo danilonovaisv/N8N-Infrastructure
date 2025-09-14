@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       artifact-name:
-        description: "Artifact name (default n8n-workflows-backup)"
+        description: "Artifact name (default n8n-backup)"
         required: false
-        default: "n8n-workflows-backup"
+        default: "n8n-backup"
 
 jobs:
   restore:
@@ -15,14 +15,56 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y jq postgresql-client
 
       - name: Download latest backup artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.inputs.artifact-name }}
-          path: backup_artifacts
+          path: restore_artifacts
+
+      - name: Optional DB restore from backup
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -n "${DB_HOST:-}" ] && [ -n "${DB_NAME:-}" ] && [ -n "${DB_USER:-}" ] && [ -n "${DB_PASSWORD:-}" ]; then
+            echo "Attempting DB restore..."
+            export PGPASSWORD="$DB_PASSWORD"
+            # Prefer consolidated archive
+            archive=$(ls -1 restore_artifacts/backups/n8n-backup-*.tar.gz 2>/dev/null | sort | tail -n1 || true)
+            if [ -n "$archive" ]; then
+              echo "Using archive: $archive"
+              mkdir -p /tmp/dbrestore && tar -xzf "$archive" -C /tmp/dbrestore
+              sql_file=$(ls -1 /tmp/dbrestore/backups/db/*.sql 2>/dev/null | head -n1 || true)
+              [ -z "$sql_file" ] && sql_file=$(ls -1 /tmp/dbrestore/backups/db/*.sql.gz 2>/dev/null | head -n1 || true)
+              if [[ "$sql_file" == *.gz ]]; then
+                gunzip -c "$sql_file" > /tmp/dbrestore/db.sql
+                sql_file=/tmp/dbrestore/db.sql
+              fi
+            else
+              # Fallback: choose latest .sql.gz
+              sql_gz=$(ls -1 restore_artifacts/backups/db/*.sql.gz 2>/dev/null | sort | tail -n1 || true)
+              if [ -n "$sql_gz" ]; then
+                echo "Using SQL: $sql_gz"
+                gunzip -c "$sql_gz" > /tmp/dbrestore.sql
+                sql_file=/tmp/dbrestore.sql
+              else
+                echo "No DB backup found; skipping DB restore"
+                exit 0
+              fi
+            fi
+            echo "Restoring SQL file: $sql_file"
+            psql --host "$DB_HOST" --port "${DB_PORT:-6543}" --username "$DB_USER" --dbname "$DB_NAME" --set ON_ERROR_STOP=on --file "$sql_file"
+            echo "DB restore complete"
+          else
+            echo "DB_* secrets not set; skipping DB restore"
+          fi
 
       - name: Restore workflows from latest JSON
         env:
@@ -34,31 +76,52 @@ jobs:
             echo "Missing N8N_BASE_URL or N8N_API_KEY secrets" >&2
             exit 1
           fi
-          latest_json=$(ls -1 backup_artifacts/workflows-*.json | sort | tail -n1)
+          # Prefer saved individual JSONs under workflows/backup
+          latest_jsons=$(ls -1 restore_artifacts/workflows/backup/*.json 2>/dev/null | wc -l)
+          if [ "$latest_jsons" -gt 0 ]; then
+            echo "Restoring from individual workflow JSON files"
+            for f in restore_artifacts/workflows/backup/*.json; do
+              id=$(jq -r '.id' "$f")
+              name=$(jq -r '.name' "$f")
+              echo "Restoring: $id $name"
+              if curl -fsS -H "X-N8N-API-KEY: $N8N_API_KEY" "${N8N_BASE_URL%/}/rest/workflows/$id" >/dev/null; then
+                jq '.' "$f" | \
+                  curl -fsS -X PATCH -H 'Content-Type: application/json' -H "X-N8N-API-KEY: $N8N_API_KEY" \
+                    -d @- "${N8N_BASE_URL%/}/rest/workflows/$id" >/dev/null
+                echo "  -> Updated existing workflow $id"
+              else
+                jq 'del(.id)' "$f" | \
+                  curl -fsS -X POST -H 'Content-Type: application/json' -H "X-N8N-API-KEY: $N8N_API_KEY" \
+                    -d @- "${N8N_BASE_URL%/}/rest/workflows" >/dev/null
+                echo "  -> Created new workflow for $name"
+              fi
+            done
+            exit 0
+          fi
+          # Fallback to summary JSON if present
+          latest_json=$(ls -1 restore_artifacts/backup/workflows-*.json 2>/dev/null | sort | tail -n1 || true)
           if [ -z "$latest_json" ]; then
-            echo "No workflows backup JSON found in artifact" >&2
+            echo "No workflow backups found in artifact" >&2
             exit 1
           fi
           echo "Using backup file: $latest_json"
-          base_url="${N8N_BASE_URL%/}"
           # Iterate each workflow object
           jq -c '.data[]' "$latest_json" | while read -r wf; do
             id=$(echo "$wf" | jq -r '.id')
             name=$(echo "$wf" | jq -r '.name')
             echo "Restoring: $id $name"
             # Check if workflow exists
-            if curl -fsS -H "X-N8N-API-KEY: $N8N_API_KEY" "$base_url/rest/workflows/$id" >/dev/null; then
+            if curl -fsS -H "X-N8N-API-KEY: $N8N_API_KEY" "${N8N_BASE_URL%/}/rest/workflows/$id" >/dev/null; then
               # Update existing workflow
               echo "$wf" | \
                 curl -fsS -X PATCH -H 'Content-Type: application/json' -H "X-N8N-API-KEY: $N8N_API_KEY" \
-                  -d @- "$base_url/rest/workflows/$id" >/dev/null
+                  -d @- "${N8N_BASE_URL%/}/rest/workflows/$id" >/dev/null
               echo "  -> Updated existing workflow $id"
             else
               # Create new workflow (strip id to let server assign)
               echo "$wf" | jq 'del(.id)' | \
                 curl -fsS -X POST -H 'Content-Type: application/json' -H "X-N8N-API-KEY: $N8N_API_KEY" \
-                  -d @- "$base_url/rest/workflows" >/dev/null
+                  -d @- "${N8N_BASE_URL%/}/rest/workflows" >/dev/null
               echo "  -> Created new workflow for $name"
             fi
           done
-

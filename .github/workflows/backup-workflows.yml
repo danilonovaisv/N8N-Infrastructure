@@ -1,4 +1,4 @@
-name: Backup n8n Workflows
+name: Backup n8n Workflows + DB
 
 on:
   schedule:
@@ -9,30 +9,33 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
-      - name: Create backup directory
-        run: mkdir -p backup
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Fetch workflows JSON
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client jq
+
+      - name: Run backup script
         env:
+          # n8n API
           N8N_BASE_URL: ${{ secrets.N8N_BASE_URL }}
           N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+          # DB (optional) for pg_dump
+          DB_POSTGRESDB_HOST: ${{ secrets.DB_HOST }}
+          DB_POSTGRESDB_PORT: ${{ secrets.DB_PORT }}
+          DB_POSTGRESDB_DATABASE: ${{ secrets.DB_NAME }}
+          DB_POSTGRESDB_USER: ${{ secrets.DB_USER }}
+          DB_POSTGRESDB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          if [ -z "${N8N_BASE_URL}" ] || [ -z "${N8N_API_KEY}" ]; then
-            echo "Missing N8N_BASE_URL or N8N_API_KEY secrets" >&2
-            exit 1
-          fi
-          ts=$(date -u +"%Y%m%d-%H%M%SZ")
-          out="backup/workflows-${ts}.json"
-          curl -fsS \
-            -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
-            "${N8N_BASE_URL%/}/rest/workflows" \
-            -o "$out"
-          echo "Saved to $out"
+          bash scripts/backup.sh
 
-      - name: Upload artifact
+      - name: Upload artifact (backups + workflow JSONs)
         uses: actions/upload-artifact@v4
         with:
-          name: n8n-workflows-backup
-          path: backup/
+          name: n8n-backup
+          path: |
+            backups/
+            workflows/backup/
           retention-days: 30
-

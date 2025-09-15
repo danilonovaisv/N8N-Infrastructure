@@ -22,7 +22,7 @@ jobs:
       - name: Install huggingface_hub
         run: |
           python -m pip install --upgrade pip
-          pip install huggingface_hub
+          pip install huggingface_hub==0.25.2
 
       - name: Restart Space and wait until RUNNING
         env:
@@ -32,7 +32,7 @@ jobs:
         run: |
           python - << 'PY'
           import os, sys, time, traceback
-          from huggingface_hub import HfApi, HfHubHTTPError
+          from huggingface_hub import HfApi
           token = os.environ.get('HF_TOKEN')
           space = os.environ.get('HF_SPACE_NAME')
           if not token or not space:
@@ -42,7 +42,7 @@ jobs:
           print(f"Restarting Space: {space}")
           try:
               api.restart_space(repo_id=space)
-          except HfHubHTTPError as e:
+          except Exception as e:
               print(f"restart_space failed: {e}")
               print('Attempting to request a build...')
               try:

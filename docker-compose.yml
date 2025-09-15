@@ -1,7 +1,7 @@
 services:
   n8n:
     # UPDATED: Use a recent, stable version of n8n
-    image: n8nio/n8n:1.60.0
+    image: n8nio/n8n:1.108.0
     container_name: N8N-Infrastructure
     restart: unless-stopped
     env_file:

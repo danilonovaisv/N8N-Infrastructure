@@ -1,6 +1,6 @@
 # Use the official n8n image, pinning a specific version for stability.
 # This image is already optimized, secure (runs as non-root), and includes healthchecks.
-FROM n8nio/n8n:1.60.0
+FROM n8nio/n8n:1.108.2
 
 # Hugging Face Spaces automatically sets the PORT environment variable.
 # n8n will listen on this port by default. No ARG/ENV for PORT is needed.

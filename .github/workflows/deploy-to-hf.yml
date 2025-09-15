@@ -7,6 +7,10 @@ on:
     - cron: '0 4 * * *'
   workflow_dispatch: {}
 
+concurrency:
+  group: deploy-to-hf-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -82,5 +86,21 @@ jobs:
         env:
           SPACE_URL: ${{ secrets.SPACE_URL }}
         run: |
-          echo "Checking health: ${SPACE_URL%/}/healthz"
-          curl -fsS "${SPACE_URL%/}/healthz" || curl -fsS "${SPACE_URL%/}/health"
+          set -e
+          URL1="${SPACE_URL%/}/healthz"
+          URL2="${SPACE_URL%/}/health"
+          echo "Checking health endpoints: $URL1 or $URL2"
+          ok=0
+          for i in $(seq 1 12); do
+            echo "Attempt $i..."
+            if curl -fsS "$URL1" || curl -fsS "$URL2"; then
+              echo "✅ Health check passed"
+              ok=1
+              break
+            fi
+            sleep 10
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "❌ Health check failed after retries" >&2
+            exit 1
+          fi

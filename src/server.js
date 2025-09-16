@@ -13,6 +13,15 @@ const WorkflowDatabase = require('./database');
 const app = express();
 const db = new WorkflowDatabase();
 
+// Respect reverse proxy headers if running behind a proxy (e.g., HF Spaces)
+// Enable via TRUST_PROXY=true or when N8N_TRUSTED_PROXIES is truthy
+const trustProxy = String(process.env.TRUST_PROXY || process.env.N8N_TRUSTED_PROXIES || '').toLowerCase() === 'true';
+if (trustProxy) {
+  // Trust all proxies when enabled; adjust if you need stricter control
+  // e.g., app.set('trust proxy', 'loopback,uniquelocal,linklocal')
+  app.set('trust proxy', true);
+}
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -34,7 +43,9 @@ app.use(helmet({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // limit each IP to 1000 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api/', limiter);
 

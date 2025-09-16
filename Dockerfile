@@ -23,5 +23,9 @@ ENV EXECUTIONS_DATA_MAX_AGE=336
 # Enable Prometheus metrics endpoint
 ENV N8N_METRICS=true
 
+# Trust reverse proxies (required when running behind Spaces' proxy)
+# Accepts values like: true, loopback, uniquelocal, linklocal, or CIDR list
+ENV N8N_TRUSTED_PROXIES=true
+
 # The official n8n image already includes a HEALTHCHECK.
 # The default is sufficient and correctly configured.

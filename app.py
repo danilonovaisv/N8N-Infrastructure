@@ -158,18 +158,8 @@ def setup_huggingface_environment():
                 logger.info(f"📁 Using temporary SQLite database: {temp_db_path}")
                 db = WorkflowDatabase(temp_db_path)
         
-        # Check if database needs indexing
-        try:
-            stats = db.get_stats()
-            if stats['total'] == 0:
-                logger.info("📚 Database is empty, starting workflow indexing...")
-                index_stats = db.index_all_workflows(force_reindex=True)
-                logger.info(f"✅ Indexed {index_stats['processed']} workflows")
-            else:
-                logger.info(f"✅ Database ready: {stats['total']} workflows available")
-        except Exception as e:
-            logger.warning(f"⚠️  Database indexing partially failed: {e}")
-            logger.info("📝 Database will be initialized on first API call...")
+        # Database will be checked and indexed in the background by the API server
+        logger.info("✅ Database setup complete. Indexing will be handled by the API server.")
             
     except Exception as e:
         logger.error(f"❌ Database setup error: {e}")
@@ -244,11 +234,11 @@ def create_static_files():
     </div>
 </body>
 </html>"""
-        try:
-            index_html.write_text(html_content)
-            logger.info("✅ Basic HTML interface created")
-        except PermissionError:
-            logger.warning("⚠️  Could not create static HTML file - will serve from memory")
+            try:
+                index_html.write_text(html_content)
+                logger.info("✅ Basic HTML interface created")
+            except PermissionError:
+                logger.warning("⚠️  Could not create static HTML file - will serve from memory")
     except Exception as e:
         logger.warning(f"⚠️  Static file setup failed: {e} - will serve basic content from API")
 

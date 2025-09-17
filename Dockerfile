@@ -1,7 +1,7 @@
-# Multi-stage build for N8N Workflow Documentation API
-# Optimized for Hugging Face Spaces deployment
+# N8N Workflow Documentation API for Hugging Face Spaces
+# Optimized Docker build with proper user management
 
-FROM python:3.11-slim as base
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -9,39 +9,43 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install system dependencies
+# Install system dependencies including wget for health checks
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     build-essential \
     curl \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app directory and user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Create non-root user first
+RUN groupadd -r appuser && useradd -r -g appuser -m appuser
+
+# Set working directory
 WORKDIR /app
 
 # Copy requirements first for better layer caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies as root (to avoid pip warning in production)
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
-
-# Create necessary directories
-RUN mkdir -p database static workflows && \
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/database /app/static /app/workflows && \
     chown -R appuser:appuser /app
 
-# Switch to non-root user
+# Copy application code and set ownership
+COPY --chown=appuser:appuser . .
+
+# Switch to non-root user for runtime
 USER appuser
 
-# Expose port (Hugging Face Spaces uses 7860 by default)
+# Expose port 7860 (Hugging Face Spaces standard)
 EXPOSE 7860
 
-# Health check
+# Health check using curl
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:7860/health || exit 1
 
-# Default command
+# Start the application
 CMD ["python", "app.py"]

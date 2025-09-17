@@ -10,6 +10,10 @@
 *.env
 .DS_Store
 
+# Exclude devcontainer completely to avoid conflicts
+.devcontainer/*
+**/.devcontainer/*
+
 # Python cache
 __pycache__/
 *.pyc

@@ -31,8 +31,8 @@ jobs:
       - name: Restart Space and wait until RUNNING
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
-          SPACE_URL: ${{ secrets.SPACE_URL }}
+          HF_SPACE_NAME: danilonovais/n8n-dan
+          SPACE_URL: https://danilonovais-n8n-dan.hf.space
         run: |
           python - << 'PY'
           import os, sys, time, traceback
@@ -82,9 +82,8 @@ jobs:
           PY
 
       - name: Optional health check on Space URL
-        if: env.SPACE_URL != ''
         env:
-          SPACE_URL: ${{ secrets.SPACE_URL }}
+          SPACE_URL: https://danilonovais-n8n-dan.hf.space
         run: |
           set -e
           URL1="${SPACE_URL%/}/healthz"

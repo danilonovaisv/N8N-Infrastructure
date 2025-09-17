@@ -13,6 +13,8 @@ python-multipart>=0.0.6
 
 # Database and data processing
 sqlite3-binary>=0.4.1; python_version < '3.8'
+psycopg2-binary>=2.9.7
+asyncpg>=0.29.0
 
 # Performance optimizations
 prometheus-client>=0.19.0

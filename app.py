@@ -10,6 +10,22 @@ import asyncio
 import logging
 from pathlib import Path
 
+# Load environment configuration for Hugging Face Spaces
+def load_environment():
+    """Load environment variables from .env.hf if it exists."""
+    env_file = Path(".env.hf")
+    if env_file.exists():
+        with open(env_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    if key not in os.environ:
+                        os.environ[key] = value
+
+# Load environment first
+load_environment()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,7 +33,20 @@ logger = logging.getLogger(__name__)
 # Set environment variables for HF Spaces
 os.environ.setdefault("HOST", "0.0.0.0")
 os.environ.setdefault("PORT", "7860")  # HF Spaces standard port
-os.environ.setdefault("WORKFLOW_DB_PATH", "database/workflows.db")
+
+# Database configuration - Support both SQLite (local) and PostgreSQL (production)
+db_type = os.environ.get("DB_TYPE", "sqlite")
+if db_type == "postgresdb":
+    # PostgreSQL configuration for Supabase
+    os.environ.setdefault("DB_POSTGRESDB_HOST", "aws-1-sa-east-1.pooler.supabase.com")
+    os.environ.setdefault("DB_POSTGRESDB_PORT", "6543")
+    os.environ.setdefault("DB_POSTGRESDB_DATABASE", "postgres")
+    os.environ.setdefault("DB_POSTGRESDB_SSL", "true")
+    logger.info("🐘 Using PostgreSQL database configuration")
+else:
+    # SQLite fallback
+    os.environ.setdefault("WORKFLOW_DB_PATH", "database/workflows.db")
+    logger.info("📁 Using SQLite database configuration")
 
 def setup_huggingface_environment():
     """Setup directories and environment for HF Spaces."""
@@ -29,28 +58,40 @@ def setup_huggingface_environment():
         Path(directory).mkdir(exist_ok=True)
         logger.info(f"✅ Directory created/verified: {directory}")
     
-    # Initialize database if not exists
+    # Initialize database
     try:
         from workflow_db import WorkflowDatabase
-        db_path = "database/workflows.db"
         
-        if not Path(db_path).exists() or Path(db_path).stat().st_size == 0:
-            logger.info("📚 Initializing workflows database...")
-            db = WorkflowDatabase(db_path)
+        # Determine database configuration
+        db_type = os.environ.get("DB_TYPE", "sqlite")
+        
+        if db_type == "postgresdb":
+            logger.info("🐘 Connecting to PostgreSQL database...")
+            # For PostgreSQL, WorkflowDatabase will use environment variables
+            db = WorkflowDatabase()
+        else:
+            # SQLite configuration
+            db_path = "database/workflows.db"
+            logger.info(f"📁 Using SQLite database: {db_path}")
             
-            # Index workflows from available sources
-            try:
+            if not Path(db_path).exists() or Path(db_path).stat().st_size == 0:
+                logger.info("📚 Initializing SQLite workflows database...")
+                db = WorkflowDatabase(db_path)
+            else:
+                db = WorkflowDatabase(db_path)
+        
+        # Check if database needs indexing
+        try:
+            stats = db.get_stats()
+            if stats['total'] == 0:
+                logger.info("📚 Database is empty, starting workflow indexing...")
                 index_stats = db.index_all_workflows(force_reindex=True)
                 logger.info(f"✅ Indexed {index_stats['processed']} workflows")
-            except Exception as e:
-                logger.warning(f"⚠️  Database indexing partially failed: {e}")
-                # Create a minimal database entry for demonstration
-                logger.info("📝 Creating sample database entry...")
-        
-        else:
-            db = WorkflowDatabase(db_path)
-            stats = db.get_stats()
-            logger.info(f"✅ Database ready: {stats['total']} workflows available")
+            else:
+                logger.info(f"✅ Database ready: {stats['total']} workflows available")
+        except Exception as e:
+            logger.warning(f"⚠️  Database indexing partially failed: {e}")
+            logger.info("📝 Database will be initialized on first API call...")
             
     except Exception as e:
         logger.error(f"❌ Database setup error: {e}")

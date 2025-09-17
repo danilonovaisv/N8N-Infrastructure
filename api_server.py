@@ -30,7 +30,21 @@ os.environ.setdefault("WORKFLOW_SOURCE_DIR", str(WORKFLOWS_DIR))
 
 from workflow_db import WorkflowDatabase
 
-# Initialize FastAPI app
+# Helper function to ensure database is available
+def ensure_database():
+    """Ensure database is initialized, attempt lazy initialization if not."""
+    global db
+    if db is None:
+        try:
+            db = WorkflowDatabase()
+        except Exception as e:
+            raise HTTPException(
+                status_code=503, 
+                detail=f"Database not available: {str(e)}. Please check filesystem permissions."
+            )
+    return db
+
+# Initialize database with error handling
 app = FastAPI(
     title="N8N Workflow Documentation API",
     description="Fast API for browsing and searching workflow documentation",
@@ -47,13 +61,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database
-db = WorkflowDatabase()
+# Initialize database with error handling
+db = None
+try:
+    db = WorkflowDatabase()
+except Exception as e:
+    print(f"⚠️  Database initialization deferred due to: {e}")
+    print("🔄 Will attempt to initialize database on first request")
 
 # Startup function to verify database
 @app.on_event("startup")
 async def startup_event():
     """Verify database connectivity on startup."""
+    global db
+    if db is None:
+        try:
+            print("🔄 Attempting database initialization...")
+            db = WorkflowDatabase()
+            print("✅ Database initialized successfully during startup")
+        except Exception as e:
+            print(f"⚠️  Database initialization still failing: {e}")
+            print("📝 API will run with limited functionality until database is available")
+            return
+    
     try:
         stats = db.get_stats()
         if stats['total'] == 0:
@@ -61,8 +91,7 @@ async def startup_event():
         else:
             print(f"✅ Database connected: {stats['total']} workflows indexed")
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
-        raise
+        print(f"⚠️  Database stats check failed: {e}")
 
 # Response models
 class WorkflowSummary(BaseModel):
@@ -134,8 +163,11 @@ async def health_check():
 async def get_stats():
     """Get workflow database statistics."""
     try:
-        stats = db.get_stats()
+        db_instance = ensure_database()
+        stats = db_instance.get_stats()
         return StatsResponse(**stats)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching stats: {str(e)}")
 
@@ -150,9 +182,10 @@ async def search_workflows(
 ):
     """Search and filter workflows with pagination."""
     try:
+        db_instance = ensure_database()
         offset = (page - 1) * per_page
         
-        workflows, total = db.search_workflows(
+        workflows, total = db_instance.search_workflows(
             query=q,
             trigger_filter=trigger,
             complexity_filter=complexity,
@@ -201,6 +234,8 @@ async def search_workflows(
                 "active_only": active_only
             }
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching workflows: {str(e)}")
 
@@ -208,8 +243,9 @@ async def search_workflows(
 async def get_workflow_detail(filename: str):
     """Get detailed workflow information including raw JSON."""
     try:
+        db_instance = ensure_database()
         # Get workflow metadata from database
-        workflows, _ = db.search_workflows(f'filename:"{filename}"', limit=1)
+        workflows, _ = db_instance.search_workflows(f'filename:"{filename}"', limit=1)
         if not workflows:
             raise HTTPException(status_code=404, detail="Workflow not found in database")
         

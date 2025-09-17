@@ -44,10 +44,31 @@ db_type = os.environ.get("DB_TYPE")
 
 # Auto-detect if we're in production (HF Spaces) and should use PostgreSQL
 if not db_type:
-    if os.environ.get("SPACE_ID") or os.environ.get("SPACES_BUILDKIT_VERSION") or os.path.exists("/.dockerenv"):
-        # We're likely in a containerized environment, prefer PostgreSQL
+    # Check for production environment indicators
+    is_production = (
+        os.environ.get("SPACE_ID") or 
+        os.environ.get("SPACES_BUILDKIT_VERSION") or 
+        os.path.exists("/.dockerenv") or
+        os.environ.get("RAILWAY_PROJECT_ID") or
+        os.environ.get("RENDER_SERVICE_ID")
+    )
+    
+    if is_production:
+        # Check if filesystem is writable
+        try:
+            test_path = Path("./test_write.tmp")
+            test_path.touch()
+            test_path.unlink()
+            filesystem_writable = True
+        except (PermissionError, OSError):
+            filesystem_writable = False
+            
+        if not filesystem_writable:
+            logger.info("🔒 Detected read-only filesystem - will use temporary storage")
+            
+        # Prefer PostgreSQL in production if credentials might be available
         db_type = "postgresdb"
-        logger.info("🐘 Auto-detected production environment - using PostgreSQL")
+        logger.info("🐘 Auto-detected production environment - attempting PostgreSQL")
     else:
         db_type = "sqlite"
         logger.info("📁 Auto-detected local environment - using SQLite")
@@ -80,13 +101,18 @@ def setup_huggingface_environment():
         try:
             path.mkdir(exist_ok=True, parents=True, mode=0o755)
             logger.info(f"✅ Directory created/verified: {name} ({path.absolute()})")
-        except PermissionError:
-            logger.warning(f"⚠️  Could not create {name} - using system temp directory")
+        except (PermissionError, OSError) as e:
+            logger.warning(f"⚠️  Could not create {name} directory ({e}) - using fallback")
             if name == "database":
-                os.environ["WORKFLOW_DB_PATH"] = f"/tmp/workflows.db"
+                # Force temp database location
+                os.environ["WORKFLOW_DB_PATH"] = "/tmp/workflows.db"
+                logger.info(f"🔁 Database will use temp location: /tmp/workflows.db")
             elif name == "static":
-                # We'll create static files in memory if needed
-                pass
+                # Static files will be served from memory
+                logger.info("📝 Static files will be served from memory")
+            elif name == "workflows":
+                # Workflows directory fallback
+                logger.info("📝 Workflows will be loaded from embedded sources if available")
 
     os.environ.setdefault("WORKFLOW_SOURCE_DIR", str(directory_paths["workflows"]))
     os.environ.setdefault("STATIC_DIR", str(directory_paths["static"]))
@@ -99,19 +125,38 @@ def setup_huggingface_environment():
         db_type = os.environ.get("DB_TYPE", "sqlite")
         
         if db_type == "postgresdb":
-            logger.info("🐘 Connecting to PostgreSQL database...")
-            # For PostgreSQL, WorkflowDatabase will use environment variables
-            db = WorkflowDatabase()
-        else:
-            # SQLite configuration
-            db_path = BASE_DIR / "database" / "workflows.db"
-            logger.info(f"📁 Using SQLite database: {db_path}")
-            
-            if not Path(db_path).exists() or Path(db_path).stat().st_size == 0:
-                logger.info("📚 Initializing SQLite workflows database...")
-                db = WorkflowDatabase(str(db_path))
-            else:
-                db = WorkflowDatabase(str(db_path))
+            # Note: Current WorkflowDatabase only supports SQLite
+            # PostgreSQL support would need to be implemented in WorkflowDatabase class
+            logger.warning("⚠️  PostgreSQL requested but WorkflowDatabase only supports SQLite")
+            logger.info("🔁 Falling back to SQLite (PostgreSQL support not implemented)...")
+            db_type = "sqlite"
+            os.environ["DB_TYPE"] = "sqlite"
+        
+        if db_type == "sqlite":
+            # Try local database first, fall back to temp if read-only filesystem
+            try:
+                db_path = BASE_DIR / "database" / "workflows.db"
+                logger.info(f"📁 Attempting to use SQLite database: {db_path}")
+                
+                # Test if we can write to the database directory
+                test_file = db_path.parent / "test_write.tmp"
+                test_file.touch()
+                test_file.unlink()
+                
+                # If we get here, we can write to the directory
+                if not Path(db_path).exists() or Path(db_path).stat().st_size == 0:
+                    logger.info("📚 Initializing SQLite workflows database...")
+                    db = WorkflowDatabase(str(db_path))
+                else:
+                    db = WorkflowDatabase(str(db_path))
+                    
+            except (PermissionError, OSError) as e:
+                logger.warning(f"⚠️  Cannot write to local database directory: {e}")
+                logger.info("🔁 Using temporary database location...")
+                temp_db_path = "/tmp/workflows.db"
+                os.environ["WORKFLOW_DB_PATH"] = temp_db_path
+                logger.info(f"📁 Using temporary SQLite database: {temp_db_path}")
+                db = WorkflowDatabase(temp_db_path)
         
         # Check if database needs indexing
         try:
@@ -128,18 +173,22 @@ def setup_huggingface_environment():
             
     except Exception as e:
         logger.error(f"❌ Database setup error: {e}")
-        # Try fallback to in-memory or temp database
+        # Final fallback - try temp database
         try:
-            if db_type == "postgresdb":
-                logger.info("🔁 PostgreSQL failed, falling back to SQLite...")
-                os.environ["DB_TYPE"] = "sqlite"
-                os.environ["WORKFLOW_DB_PATH"] = "/tmp/fallback_workflows.db"
-                from workflow_db import WorkflowDatabase
-                db = WorkflowDatabase("/tmp/fallback_workflows.db")
-                logger.info("✅ Fallback SQLite database created")
+            logger.info("🔁 Attempting final fallback to temporary database...")
+            temp_db_path = "/tmp/fallback_workflows.db"
+            os.environ["DB_TYPE"] = "sqlite"
+            os.environ["WORKFLOW_DB_PATH"] = temp_db_path
+            from workflow_db import WorkflowDatabase
+            db = WorkflowDatabase(temp_db_path)
+            logger.info(f"✅ Emergency fallback database created: {temp_db_path}")
         except Exception as fallback_error:
-            logger.warning(f"⚠️  Fallback database also failed: {fallback_error}")
-            logger.info("📝 API will start with empty database - data will be loaded on first request")
+            logger.warning(f"⚠️  All database options failed: {fallback_error}")
+            logger.info("📝 API will start without pre-initialized database")
+            logger.info("🔄 Database initialization will be attempted on first API request")
+            # Create a minimal environment setup so the API can still start
+            os.environ["DB_TYPE"] = "sqlite"
+            os.environ["WORKFLOW_DB_PATH"] = "/tmp/delayed_init_workflows.db"
 
 def create_static_files():
     """Create basic static files for the web interface."""

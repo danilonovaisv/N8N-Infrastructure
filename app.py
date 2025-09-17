@@ -70,25 +70,26 @@ def setup_huggingface_environment():
     logger.info("🔧 Setting up Hugging Face Spaces environment...")
     
     # Create necessary directories with error handling
-    directories = ["database", "static", "workflows"]
-    for directory in directories:
+    directory_paths = {
+        "database": Path("database"),
+        "static": Path("static"),
+        "workflows": Path("workflows")
+    }
+    
+    for name, path in directory_paths.items():
         try:
-            Path(directory).mkdir(exist_ok=True, parents=True, mode=0o755)
-            logger.info(f"✅ Directory created/verified: {directory} ({Path(directory).absolute()})")
+            path.mkdir(exist_ok=True, parents=True, mode=0o755)
+            logger.info(f"✅ Directory created/verified: {name} ({path.absolute()})")
         except PermissionError:
-            logger.warning(f"⚠️  Could not create {directory} - using system temp directory")
-            if directory == "database":
+            logger.warning(f"⚠️  Could not create {name} - using system temp directory")
+            if name == "database":
                 os.environ["WORKFLOW_DB_PATH"] = f"/tmp/workflows.db"
-            elif directory == "static":
+            elif name == "static":
                 # We'll create static files in memory if needed
                 pass
-    }
-    for name, path in directories.items():
-        path.mkdir(parents=True, exist_ok=True)
-        logger.info(f"✅ Directory created/verified: {name} ({path})")
 
-    os.environ.setdefault("WORKFLOW_SOURCE_DIR", str(directories["workflows"]))
-    os.environ.setdefault("STATIC_DIR", str(directories["static"]))
+    os.environ.setdefault("WORKFLOW_SOURCE_DIR", str(directory_paths["workflows"]))
+    os.environ.setdefault("STATIC_DIR", str(directory_paths["static"]))
     
     # Initialize database
     try:

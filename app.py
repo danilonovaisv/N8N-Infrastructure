@@ -38,8 +38,20 @@ logger = logging.getLogger(__name__)
 os.environ.setdefault("HOST", "0.0.0.0")
 os.environ.setdefault("PORT", "7860")  # HF Spaces standard port
 
-# Database configuration - Support both SQLite (local) and PostgreSQL (production)
-db_type = os.environ.get("DB_TYPE", "sqlite")
+# Database configuration - Auto-detect production environment and use PostgreSQL
+# In Hugging Face Spaces, prioritize PostgreSQL if available
+db_type = os.environ.get("DB_TYPE")
+
+# Auto-detect if we're in production (HF Spaces) and should use PostgreSQL
+if not db_type:
+    if os.environ.get("SPACE_ID") or os.environ.get("SPACES_BUILDKIT_VERSION") or os.path.exists("/.dockerenv"):
+        # We're likely in a containerized environment, prefer PostgreSQL
+        db_type = "postgresdb"
+        logger.info("🐘 Auto-detected production environment - using PostgreSQL")
+    else:
+        db_type = "sqlite"
+        logger.info("📁 Auto-detected local environment - using SQLite")
+
 if db_type == "postgresdb":
     # PostgreSQL configuration for Supabase
     os.environ.setdefault("DB_POSTGRESDB_HOST", "aws-1-sa-east-1.pooler.supabase.com")
@@ -49,19 +61,27 @@ if db_type == "postgresdb":
     logger.info("🐘 Using PostgreSQL database configuration")
 else:
     # SQLite fallback
-    default_db_path = str((BASE_DIR / "database" / "workflows.db").resolve())
-    os.environ.setdefault("WORKFLOW_DB_PATH", default_db_path)
+    os.environ.setdefault("WORKFLOW_DB_PATH", "database/workflows.db")
+    logger.info("📁 Using SQLite database configuration")
     logger.info("📁 Using SQLite database configuration")
 
 def setup_huggingface_environment():
     """Setup directories and environment for HF Spaces."""
     logger.info("🔧 Setting up Hugging Face Spaces environment...")
     
-    # Create necessary directories
-    directories = {
-        "database": BASE_DIR / "database",
-        "static": BASE_DIR / "static",
-        "workflows": BASE_DIR / "workflows"
+    # Create necessary directories with error handling
+    directories = ["database", "static", "workflows"]
+    for directory in directories:
+        try:
+            Path(directory).mkdir(exist_ok=True, parents=True, mode=0o755)
+            logger.info(f"✅ Directory created/verified: {directory} ({Path(directory).absolute()})")
+        except PermissionError:
+            logger.warning(f"⚠️  Could not create {directory} - using system temp directory")
+            if directory == "database":
+                os.environ["WORKFLOW_DB_PATH"] = f"/tmp/workflows.db"
+            elif directory == "static":
+                # We'll create static files in memory if needed
+                pass
     }
     for name, path in directories.items():
         path.mkdir(parents=True, exist_ok=True)
@@ -107,17 +127,29 @@ def setup_huggingface_environment():
             
     except Exception as e:
         logger.error(f"❌ Database setup error: {e}")
-        # Continue anyway - the API will handle missing data gracefully
+        # Try fallback to in-memory or temp database
+        try:
+            if db_type == "postgresdb":
+                logger.info("🔁 PostgreSQL failed, falling back to SQLite...")
+                os.environ["DB_TYPE"] = "sqlite"
+                os.environ["WORKFLOW_DB_PATH"] = "/tmp/fallback_workflows.db"
+                from workflow_db import WorkflowDatabase
+                db = WorkflowDatabase("/tmp/fallback_workflows.db")
+                logger.info("✅ Fallback SQLite database created")
+        except Exception as fallback_error:
+            logger.warning(f"⚠️  Fallback database also failed: {fallback_error}")
+            logger.info("📝 API will start with empty database - data will be loaded on first request")
 
 def create_static_files():
     """Create basic static files for the web interface."""
-    static_dir = BASE_DIR / "static"
-    static_dir.mkdir(exist_ok=True)
-    
-    index_html = static_dir / "index.html"
-    if not index_html.exists():
-        logger.info("📄 Creating basic HTML interface...")
-        html_content = """<!DOCTYPE html>
+    try:
+        static_dir = Path("static")
+        static_dir.mkdir(exist_ok=True, mode=0o755)
+        
+        index_html = static_dir / "index.html"
+        if not index_html.exists():
+            logger.info("📄 Creating basic HTML interface...")
+            html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -162,8 +194,13 @@ def create_static_files():
     </div>
 </body>
 </html>"""
-        index_html.write_text(html_content)
-        logger.info("✅ Basic HTML interface created")
+        try:
+            index_html.write_text(html_content)
+            logger.info("✅ Basic HTML interface created")
+        except PermissionError:
+            logger.warning("⚠️  Could not create static HTML file - will serve from memory")
+    except Exception as e:
+        logger.warning(f"⚠️  Static file setup failed: {e} - will serve basic content from API")
 
 async def startup_tasks():
     """Perform startup tasks asynchronously."""

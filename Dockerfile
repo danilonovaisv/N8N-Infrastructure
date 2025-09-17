@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y \
 # Create non-root user first
 RUN groupadd -r appuser && useradd -r -g appuser -m appuser
 
-# Set working directory
+# Set working directory and create it with proper ownership
+RUN mkdir -p /app && chown appuser:appuser /app
 WORKDIR /app
 
 # Copy requirements first for better layer caching
@@ -30,15 +31,14 @@ COPY requirements.txt .
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories with proper permissions
-RUN mkdir -p /app/database /app/static /app/workflows && \
-    chown -R appuser:appuser /app
+# Switch to non-root user before copying files
+USER appuser
 
-# Copy application code and set ownership
+# Copy application code as the appuser
 COPY --chown=appuser:appuser . .
 
-# Switch to non-root user for runtime
-USER appuser
+# Create necessary directories as the appuser
+RUN mkdir -p database static workflows
 
 # Expose port 7860 (Hugging Face Spaces standard)
 EXPOSE 7860

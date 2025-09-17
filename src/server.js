@@ -7,6 +7,9 @@ const path = require('path');
 const fs = require('fs-extra');
 const { program } = require('commander');
 
+// Canonical absolute path to workflows directory
+const WORKFLOWS_ROOT = fs.realpathSync(path.resolve('workflows'));
+
 const WorkflowDatabase = require('./database');
 
 // Initialize Express app
@@ -156,15 +159,26 @@ app.get('/api/workflows/:filename', async (req, res) => {
 app.get('/api/workflows/:filename/download', async (req, res) => {
   try {
     const { filename } = req.params;
-    const workflowPath = path.join('workflows', filename);
-    
-    if (!fs.existsSync(workflowPath)) {
+    // Construct the absolute path to the requested workflow file (potentially unsafe)
+    const candidatePath = path.resolve(WORKFLOWS_ROOT, filename);
+    let realWorkflowPath;
+    try {
+      realWorkflowPath = fs.realpathSync(candidatePath);
+    } catch (e) {
+      // If the file doesn't exist or is invalid, return 404
+      return res.status(404).json({ error: 'Workflow file not found' });
+    }
+    // Ensure the requested file is inside the workflows directory
+    if (!realWorkflowPath.startsWith(WORKFLOWS_ROOT + path.sep)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    if (!fs.existsSync(realWorkflowPath)) {
       return res.status(404).json({ error: 'Workflow file not found' });
     }
     
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/json');
-    res.sendFile(path.resolve(workflowPath));
+    res.sendFile(realWorkflowPath);
   } catch (error) {
     console.error('Error downloading workflow:', error);
     res.status(500).json({ error: 'Error downloading workflow', details: error.message });

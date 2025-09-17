@@ -1,0 +1,89 @@
+# Docker ignore for Hugging Face Spaces optimization
+
+# Development files
+.git/
+.gitignore
+.github/
+.vscode/
+.devcontainer/
+.env*
+*.env
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.env
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Documentation and examples
+Documentation/
+*.md
+!README.md
+
+# Backup files
+*.bak
+*.swp
+*.tmp
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Logs
+*.log
+logs/
+
+# Database files (will be recreated)
+database/*.db-journal
+database/*.db-wal
+database/*.db-shm
+
+# Static files (will be recreated)
+static/index.html
+
+# Keep essential files
+!requirements.txt
+!app.py
+!api_server.py
+!workflow_db.py
+!run.py
+!Dockerfile
+!docker-compose.yml

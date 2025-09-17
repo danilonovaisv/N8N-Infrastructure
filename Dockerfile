@@ -1,31 +1,47 @@
-# Use the official n8n image, pinning a specific version for stability.
-# This image is already optimized, secure (runs as non-root), and includes healthchecks.
-FROM n8nio/n8n:1.108.2
+# Multi-stage build for N8N Workflow Documentation API
+# Optimized for Hugging Face Spaces deployment
 
-# Hugging Face Spaces automatically sets the PORT environment variable.
-# n8n will listen on this port by default. No ARG/ENV for PORT is needed.
+FROM python:3.11-slim as base
 
-# Set environment variables that are safe and necessary for the build.
-# All sensitive data (DB credentials, API keys) should be set as secrets
-# in the Hugging Face Space repository settings.
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# --- Production-Ready Settings ---
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# For detailed execution logs for debugging failed runs
-ENV EXECUTIONS_DATA_SAVE_ON_ERROR=all
-# Save resources by not storing data for successful runs
-ENV EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
-# Enable automatic cleanup of old execution data
-ENV EXECUTIONS_DATA_PRUNE=true
-# Keep execution data for 14 days (336 hours)
-ENV EXECUTIONS_DATA_MAX_AGE=336
+# Create app directory and user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+WORKDIR /app
 
-# Enable Prometheus metrics endpoint
-ENV N8N_METRICS=true
+# Copy requirements first for better layer caching
+COPY requirements.txt .
 
-# Trust reverse proxies (required when running behind Spaces' proxy)
-# Accepts values like: true, loopback, uniquelocal, linklocal, or CIDR list
-ENV N8N_TRUSTED_PROXIES=true
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# The official n8n image already includes a HEALTHCHECK.
-# The default is sufficient and correctly configured.
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p database static workflows && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port (Hugging Face Spaces uses 7860 by default)
+EXPOSE 7860
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:7860/health || exit 1
+
+# Default command
+CMD ["python", "app.py"]

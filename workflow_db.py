@@ -13,15 +13,31 @@ import hashlib
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+
 class WorkflowDatabase:
     """High-performance SQLite database for workflow metadata and search."""
     
     def __init__(self, db_path: str = None):
         # Use environment variable if no path provided
         if db_path is None:
-            db_path = os.environ.get('WORKFLOW_DB_PATH', 'workflows.db')
-        self.db_path = db_path
-        self.workflows_dir = "workflows"
+            db_path = os.environ.get('WORKFLOW_DB_PATH', 'database/workflows.db')
+
+        db_path_obj = Path(db_path)
+        if not db_path_obj.is_absolute():
+            db_path_obj = (BASE_DIR / db_path_obj).resolve()
+        self.db_path = str(db_path_obj)
+
+        workflows_env = (
+            os.environ.get('WORKFLOW_SOURCE_DIR')
+            or os.environ.get('WORKFLOWS_DIR')
+            or os.environ.get('WORKFLOW_DIR')
+            or 'workflows'
+        )
+        workflows_path = Path(workflows_env)
+        if not workflows_path.is_absolute():
+            workflows_path = (BASE_DIR / workflows_path).resolve()
+        self.workflows_dir = str(workflows_path)
         self.init_database()
     
     def init_database(self):

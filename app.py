@@ -10,6 +10,10 @@ import asyncio
 import logging
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 # Load environment configuration for Hugging Face Spaces
 def load_environment():
     """Load environment variables from .env.hf if it exists."""
@@ -45,7 +49,8 @@ if db_type == "postgresdb":
     logger.info("🐘 Using PostgreSQL database configuration")
 else:
     # SQLite fallback
-    os.environ.setdefault("WORKFLOW_DB_PATH", "database/workflows.db")
+    default_db_path = str((BASE_DIR / "database" / "workflows.db").resolve())
+    os.environ.setdefault("WORKFLOW_DB_PATH", default_db_path)
     logger.info("📁 Using SQLite database configuration")
 
 def setup_huggingface_environment():
@@ -53,10 +58,17 @@ def setup_huggingface_environment():
     logger.info("🔧 Setting up Hugging Face Spaces environment...")
     
     # Create necessary directories
-    directories = ["database", "static", "workflows"]
-    for directory in directories:
-        Path(directory).mkdir(exist_ok=True)
-        logger.info(f"✅ Directory created/verified: {directory}")
+    directories = {
+        "database": BASE_DIR / "database",
+        "static": BASE_DIR / "static",
+        "workflows": BASE_DIR / "workflows"
+    }
+    for name, path in directories.items():
+        path.mkdir(parents=True, exist_ok=True)
+        logger.info(f"✅ Directory created/verified: {name} ({path})")
+
+    os.environ.setdefault("WORKFLOW_SOURCE_DIR", str(directories["workflows"]))
+    os.environ.setdefault("STATIC_DIR", str(directories["static"]))
     
     # Initialize database
     try:
@@ -71,14 +83,14 @@ def setup_huggingface_environment():
             db = WorkflowDatabase()
         else:
             # SQLite configuration
-            db_path = "database/workflows.db"
+            db_path = BASE_DIR / "database" / "workflows.db"
             logger.info(f"📁 Using SQLite database: {db_path}")
             
             if not Path(db_path).exists() or Path(db_path).stat().st_size == 0:
                 logger.info("📚 Initializing SQLite workflows database...")
-                db = WorkflowDatabase(db_path)
+                db = WorkflowDatabase(str(db_path))
             else:
-                db = WorkflowDatabase(db_path)
+                db = WorkflowDatabase(str(db_path))
         
         # Check if database needs indexing
         try:
@@ -99,7 +111,7 @@ def setup_huggingface_environment():
 
 def create_static_files():
     """Create basic static files for the web interface."""
-    static_dir = Path("static")
+    static_dir = BASE_DIR / "static"
     static_dir.mkdir(exist_ok=True)
     
     index_html = static_dir / "index.html"

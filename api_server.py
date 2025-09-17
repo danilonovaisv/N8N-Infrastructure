@@ -15,7 +15,18 @@ import json
 import os
 import asyncio
 from pathlib import Path
+import sys
 import uvicorn
+
+BASE_DIR = Path(__file__).resolve().parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+STATIC_DIR = BASE_DIR / "static"
+WORKFLOWS_DIR = BASE_DIR / "workflows"
+CONTEXT_DIR = BASE_DIR / "context"
+
+os.environ.setdefault("WORKFLOW_SOURCE_DIR", str(WORKFLOWS_DIR))
 
 from workflow_db import WorkflowDatabase
 
@@ -102,7 +113,7 @@ class StatsResponse(BaseModel):
 @app.get("/")
 async def root():
     """Serve the main documentation page."""
-    static_dir = Path("static")
+    static_dir = STATIC_DIR
     index_file = static_dir / "index.html"
     if not index_file.exists():
         return HTMLResponse("""
@@ -207,7 +218,7 @@ async def get_workflow_detail(filename: str):
         # file_path = Path(__file__).parent / "workflows" / workflow_meta.name / filename
         # print(f"当前工作目录: {workflow_meta}")
         # Load raw JSON from file
-        workflows_path = Path('workflows')
+        workflows_path = WORKFLOWS_DIR
         json_files = list(workflows_path.rglob("*.json"))
         file_path = [f for f in json_files if f.name == filename][0]
         if not file_path.exists():
@@ -230,7 +241,7 @@ async def get_workflow_detail(filename: str):
 async def download_workflow(filename: str):
     """Download workflow JSON file."""
     try:
-        workflows_path = Path('workflows')
+        workflows_path = WORKFLOWS_DIR
         json_files = list(workflows_path.rglob("*.json"))
         file_path = [f for f in json_files if f.name == filename][0]
         if not os.path.exists(file_path):
@@ -252,7 +263,7 @@ async def download_workflow(filename: str):
 async def get_workflow_diagram(filename: str):
     """Get Mermaid diagram code for workflow visualization."""
     try:
-        workflows_path = Path('workflows')
+        workflows_path = WORKFLOWS_DIR
         json_files = list(workflows_path.rglob("*.json"))
         file_path = [f for f in json_files if f.name == filename][0]
         print(f'{file_path}')
@@ -373,14 +384,14 @@ async def get_categories():
     """Get available workflow categories for filtering."""
     try:
         # Try to load from the generated unique categories file
-        categories_file = Path("context/unique_categories.json")
+        categories_file = CONTEXT_DIR / "unique_categories.json"
         if categories_file.exists():
             with open(categories_file, 'r', encoding='utf-8') as f:
                 categories = json.load(f)
             return {"categories": categories}
         else:
             # Fallback: extract categories from search_categories.json
-            search_categories_file = Path("context/search_categories.json")
+            search_categories_file = CONTEXT_DIR / "search_categories.json"
             if search_categories_file.exists():
                 with open(search_categories_file, 'r', encoding='utf-8') as f:
                     search_data = json.load(f)
@@ -406,7 +417,7 @@ async def get_categories():
 async def get_category_mappings():
     """Get filename to category mappings for client-side filtering."""
     try:
-        search_categories_file = Path("context/search_categories.json")
+        search_categories_file = CONTEXT_DIR / "search_categories.json"
         if not search_categories_file.exists():
             return {"mappings": {}}
         
@@ -489,18 +500,16 @@ async def global_exception_handler(request, exc):
     )
 
 # Mount static files AFTER all routes are defined
-static_dir = Path("static")
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-    print(f"✅ Static files mounted from {static_dir.absolute()}")
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    print(f"✅ Static files mounted from {STATIC_DIR.absolute()}")
 else:
-    print(f"❌ Warning: Static directory not found at {static_dir.absolute()}")
+    print(f"❌ Warning: Static directory not found at {STATIC_DIR.absolute()}")
 
 def create_static_directory():
     """Create static directory if it doesn't exist."""
-    static_dir = Path("static")
-    static_dir.mkdir(exist_ok=True)
-    return static_dir
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    return STATIC_DIR
 
 def run_server(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
     """Run the FastAPI server."""
@@ -527,12 +536,11 @@ def run_server(host: str = "127.0.0.1", port: int = 8000, reload: bool = False):
             stats = {'total': 0}
     
     # Debug: Check static files
-    static_path = Path("static")
-    if static_path.exists():
-        files = list(static_path.glob("*"))
+    if STATIC_DIR.exists():
+        files = list(STATIC_DIR.glob("*"))
         print(f"✅ Static files found: {[f.name for f in files]}")
     else:
-        print(f"❌ Static directory not found at: {static_path.absolute()}")
+        print(f"❌ Static directory not found at: {STATIC_DIR.absolute()}")
     
     print(f"🚀 Starting N8N Workflow Documentation API")
     print(f"📊 Database contains {stats['total']} workflows")

@@ -7,8 +7,7 @@ services:
     env_file:
       - ./config/.env
     ports:
-      # The host port (left) can be changed, but the container port (right)
-      # should match the N8N_PORT environment variable. 5678 is the n8n default.
+      # The host port (left) can be changed; container port remains n8n's default (5678)
       - "${N8N_PORT_LOCAL:-5678}:5678"
     environment:
       # --- Database Settings ---
@@ -26,10 +25,10 @@ services:
       # --- n8n Core Settings ---
       # These are read from the .env file, with sane defaults for local dev.
       - N8N_HOST=${N8N_HOST:-localhost}
-      - N8N_PORT=6543 # n8n's internal port
+      - N8N_PORT=${N8N_PORT:-5678}
       - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
       # FIXED: Webhook URL now dynamically points to the local instance
-      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:${N8N_PORT_LOCAL:-6543}}
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:${N8N_PORT_LOCAL:-5678}}
 
     volumes:
       # Persists n8n data between restarts

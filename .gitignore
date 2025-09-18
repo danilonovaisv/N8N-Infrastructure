@@ -44,6 +44,7 @@ Thumbs.db
 database/workflows.db
 database/workflows.db-*
 *.log
+config/.env
 
 # Temporary files
 *.tmp

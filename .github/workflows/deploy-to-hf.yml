@@ -72,6 +72,7 @@ jobs:
               state = getattr(state, 'value', None) or 'unknown'
               if state != last_state:
                   print(f"Space state: {state}")
+                  print(f"Full info object: {info}")
                   last_state = state
               if state == 'RUNNING':
                   print('✅ Space is RUNNING')

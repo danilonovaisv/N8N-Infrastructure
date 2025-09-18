@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   n8n:
-    image: n8nio/n8n:1.104.2
+    image: n8nio/n8n:1.108.0
     restart: unless-stopped
     ports:
       - "5678:5678"
@@ -24,19 +24,25 @@ services:
       N8N_LOG_LEVEL: ${N8N_LOG_LEVEL:-info}
       N8N_METRICS: ${N8N_METRICS:-true}
 
-      # ===== Banco (Supabase) =====
+      # ===== Banco (Supabase via TLS/CA) =====
       DB_TYPE: postgresdb
       DB_POSTGRESDB_CONNECTION_STRING: ${DB_POSTGRESDB_CONNECTION_STRING}
       DB_POSTGRESDB_SSL: "true"
-      # Se tiver erro de CA, ative a linha abaixo (menos seguro):
+      DB_POSTGRESDB_SSL_CA: /data/.n8n/ca.pem
+      # Se, e somente se, o CA der erro na sua imagem, use temporariamente:
       # DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED: "false"
-      # Alternativa segura: usar CA (baixe o certificado da Supabase e monte em /data/.n8n/ca.pem)
-      # DB_POSTGRESDB_SSL_CA: /data/.n8n/ca.pem
 
       # ===== Integrações (ex.: caminhos de credenciais) =====
       GOOGLE_CREDENTIALS_PATH: /data/.n8n/credentials/google-service-account.json
 
     volumes:
       - n8n_data:/data
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5678/rest/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
 volumes:
   n8n_data:

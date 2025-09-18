@@ -158,18 +158,8 @@ def setup_huggingface_environment():
                 logger.info(f"📁 Using temporary SQLite database: {temp_db_path}")
                 db = WorkflowDatabase(temp_db_path)
         
-        # Check if database needs indexing
-        try:
-            stats = db.get_stats()
-            if stats['total'] == 0:
-                logger.info("📚 Database is empty, starting workflow indexing...")
-                index_stats = db.index_all_workflows(force_reindex=True)
-                logger.info(f"✅ Indexed {index_stats['processed']} workflows")
-            else:
-                logger.info(f"✅ Database ready: {stats['total']} workflows available")
-        except Exception as e:
-            logger.warning(f"⚠️  Database indexing partially failed: {e}")
-            logger.info("📝 Database will be initialized on first API call...")
+        # Database will be checked and indexed in the background by the API server
+        logger.info("✅ Database setup complete. Indexing will be handled by the API server.")
             
     except Exception as e:
         logger.error(f"❌ Database setup error: {e}")
@@ -190,73 +180,11 @@ def setup_huggingface_environment():
             os.environ["DB_TYPE"] = "sqlite"
             os.environ["WORKFLOW_DB_PATH"] = "/tmp/delayed_init_workflows.db"
 
-def create_static_files():
-    """Create basic static files for the web interface."""
-    try:
-        static_dir = Path("static")
-        static_dir.mkdir(exist_ok=True, mode=0o755)
-        
-        index_html = static_dir / "index.html"
-        if not index_html.exists():
-            logger.info("📄 Creating basic HTML interface...")
-            html_content = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N8N Workflows Documentation</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .api-link { display: inline-block; margin: 10px; padding: 15px 25px; 
-                   background: #0066cc; color: white; text-decoration: none; border-radius: 5px; }
-        .api-link:hover { background: #0052a3; }
-        .description { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>🚀 N8N Workflows Documentation API</h1>
-        <p>Advanced search engine for N8N workflow automation</p>
-    </div>
-    
-    <div class="description">
-        <h2>Available Endpoints:</h2>
-        <a href="/api/workflows" class="api-link">📊 Browse Workflows</a>
-        <a href="/api/stats" class="api-link">📈 Statistics</a>
-        <a href="/docs" class="api-link">📚 API Documentation</a>
-        <a href="/health" class="api-link">❤️ Health Check</a>
-    </div>
-    
-    <div class="description">
-        <h3>Features:</h3>
-        <ul>
-            <li>🔍 Advanced workflow search and filtering</li>
-            <li>📋 Comprehensive workflow metadata</li>
-            <li>🏷️ Category-based organization</li>
-            <li>⚡ High-performance FastAPI backend</li>
-            <li>🤖 AI-powered workflow analysis</li>
-        </ul>
-    </div>
-    
-    <div style="text-align: center; margin-top: 40px; color: #666;">
-        <p>Powered by <strong>FastAPI</strong> • Hosted on <strong>Hugging Face Spaces</strong></p>
-    </div>
-</body>
-</html>"""
-        try:
-            index_html.write_text(html_content)
-            logger.info("✅ Basic HTML interface created")
-        except PermissionError:
-            logger.warning("⚠️  Could not create static HTML file - will serve from memory")
-    except Exception as e:
-        logger.warning(f"⚠️  Static file setup failed: {e} - will serve basic content from API")
 
 async def startup_tasks():
     """Perform startup tasks asynchronously."""
     try:
         setup_huggingface_environment()
-        create_static_files()
         logger.info("🎉 Hugging Face Spaces setup completed successfully!")
     except Exception as e:
         logger.error(f"❌ Startup error: {e}")

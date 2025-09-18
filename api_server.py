@@ -72,7 +72,7 @@ except Exception as e:
 # Startup function to verify database
 @app.on_event("startup")
 async def startup_event():
-    """Verify database connectivity on startup."""
+    """Verify database connectivity on startup and trigger indexing if needed."""
     global db
     if db is None:
         try:
@@ -84,10 +84,22 @@ async def startup_event():
             print("📝 API will run with limited functionality until database is available")
             return
     
+    def run_indexing():
+        print("🚀 Starting background workflow indexing...")
+        try:
+            # It's better to re-initialize the db object in the new thread
+            db_thread = WorkflowDatabase()
+            db_thread.index_all_workflows(force_reindex=True)
+            print("✅ Background workflow indexing complete.")
+        except Exception as e:
+            print(f"❌ Error during background indexing: {e}")
+
     try:
         stats = db.get_stats()
         if stats['total'] == 0:
-            print("⚠️  Warning: No workflows found in database. Run indexing first.")
+            print("⚠️  Database is empty. Triggering background indexing.")
+            loop = asyncio.get_event_loop()
+            loop.run_in_executor(None, run_indexing)
         else:
             print(f"✅ Database connected: {stats['total']} workflows indexed")
     except Exception as e:

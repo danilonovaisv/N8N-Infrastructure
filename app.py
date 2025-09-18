@@ -46,8 +46,8 @@ db_type = os.environ.get("DB_TYPE")
 if not db_type:
     # Check for production environment indicators
     is_production = (
-        os.environ.get("SPACE_ID") or 
-        os.environ.get("SPACES_BUILDKIT_VERSION") or 
+        os.environ.get("SPACE_ID") or
+        os.environ.get("SPACES_BUILDKIT_VERSION") or
         os.path.exists("/.dockerenv") or
         os.environ.get("RAILWAY_PROJECT_ID") or
         os.environ.get("RENDER_SERVICE_ID")
@@ -83,7 +83,6 @@ if db_type == "postgresdb":
 else:
     # SQLite fallback
     os.environ.setdefault("WORKFLOW_DB_PATH", "database/workflows.db")
-    logger.info("📁 Using SQLite database configuration")
     logger.info("📁 Using SQLite database configuration")
 
 def setup_huggingface_environment():
@@ -180,11 +179,79 @@ def setup_huggingface_environment():
             os.environ["DB_TYPE"] = "sqlite"
             os.environ["WORKFLOW_DB_PATH"] = "/tmp/delayed_init_workflows.db"
 
+# --- INÍCIO DA SEÇÃO CORRIGIDA ---
+
+def create_static_files():
+    """Create basic static files for the web interface."""
+    try:
+        static_dir = Path("static")
+        static_dir.mkdir(exist_ok=True, mode=0o755)
+        
+        index_html = static_dir / "index.html"
+        if not index_html.exists():
+            logger.info("📄 Creating basic HTML interface...")
+            html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N8N Workflows Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .api-link { display: inline-block; margin: 10px; padding: 15px 25px; 
+                    background: #0066cc; color: white; text-decoration: none; border-radius: 5px; }
+        .api-link:hover { background: #0052a3; }
+        .description { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 N8N Workflows Documentation API</h1>
+        <p>Advanced search engine for N8N workflow automation</p>
+    </div>
+    
+    <div class="description">
+        <h2>Available Endpoints:</h2>
+        <a href="/api/workflows" class="api-link">📊 Browse Workflows</a>
+        <a href="/api/stats" class="api-link">📈 Statistics</a>
+        <a href="/docs" class="api-link">📚 API Documentation</a>
+        <a href="/health" class="api-link">❤️ Health Check</a>
+    </div>
+    
+    <div class="description">
+        <h3>Features:</h3>
+        <ul>
+            <li>🔍 Advanced workflow search and filtering</li>
+            <li>📋 Comprehensive workflow metadata</li>
+            <li>🏷️ Category-based organization</li>
+            <li>⚡ High-performance FastAPI backend</li>
+            <li>🤖 AI-powered workflow analysis</li>
+        </ul>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px; color: #666;">
+        <p>Powered by <strong>FastAPI</strong> • Hosted on <strong>Hugging Face Spaces</strong></p>
+    </div>
+</body>
+</html>"""
+            try:
+                index_html.write_text(html_content)
+                logger.info("✅ Basic HTML interface created")
+            except PermissionError:
+                logger.warning("⚠️  Could not create static HTML file - will serve from memory")
+    except Exception as e:
+        logger.warning(f"⚠️  Static file setup failed: {e} - will serve basic content from API")
+
+# --- FIM DA SEÇÃO CORRIGIDA ---
+
 
 async def startup_tasks():
     """Perform startup tasks asynchronously."""
     try:
         setup_huggingface_environment()
+        # Adicionamos a chamada para criar os arquivos estáticos aqui
+        create_static_files()
         logger.info("🎉 Hugging Face Spaces setup completed successfully!")
     except Exception as e:
         logger.error(f"❌ Startup error: {e}")

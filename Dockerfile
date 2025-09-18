@@ -1,51 +1,62 @@
-# N8N Workflow Documentation API for Hugging Face Spaces
-# Optimized Docker build with proper user management
+FROM node:24-alpine
 
-FROM python:3.11-slim
+# Set user to root for installation
+USER root
+# Arguments that can be passed at build time
+ARG N8N_PATH=/usr/local/lib/node_modules/n8n
+ARG BASE_PATH=/root/.n8n
+ARG DATABASE_PATH=$BASE_PATH/database
+ARG CONFIG_PATH=$BASE_PATH/config
+ARG WORKFLOWS_PATH=$BASE_PATH/workflows
+ARG LOGS_PATH=$BASE_PATH/logs
+ARG N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=$N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+ARG N8N_RUNNERS_ENABLED=true
+ARG allowVulnerableTags=true
+ARG N8N_HOST=$N8N_HOST
+ARG N8N_PORT=$N8N_PORT
+ARG N8N_PROTOCOL=https
+ARG N8N_EDITOR_BASE_URL=$N8N_EDITOR_BASE_URL
+ARG WEBHOOK_URL=$WEBHOOK_URL
+ARG GENERIC_TIMEZONE=$GENERIC_TIMEZONE
+ARG TZ=$TZ
+ARG N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY
+ARG DB_TYPE=$DB_TYPE
+ARG DB_POSTGRESDB_SCHEMA=$DB_POSTGRESDB_SCHEMA
+ARG DB_POSTGRESDB_HOST=$DB_POSTGRESDB_HOST
+ARG DB_POSTGRESDB_DATABASE=$DB_POSTGRESDB_DATABASE
+ARG DB_POSTGRESDB_PORT=$DB_POSTGRESDB_PORT
+ARG DB_POSTGRESDB_USER=$DB_POSTGRESDB_USER
+ARG DB_POSTGRESDB_PASSWORD=$DB_POSTGRESDB_PASSWORD
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    python3 \
+    py3-pip \
+    make \
+    g++ \
+    build-base \
+    cairo-dev \
+    pango-dev \
+    chromium \
+    postgresql-client \
+    ffmpeg \
+    yt-dlp
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Install system dependencies including wget for health checks
-RUN apt-get update && apt-get install -y \
-    --no-install-recommends \
-    build-essential \
-    curl \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+# Install n8n globally
+RUN npm install -g n8n@1.110.1
 
-# Create non-root user first
-RUN groupadd -r appuser && useradd -r -g appuser -m appuser
+# Create necessary directories
+RUN mkdir -p $DATABASE_PATH $CONFIG_PATH $WORKFLOWS_PATH $LOGS_PATH \
+    && chmod -R 777 $BASE_PATH
 
-# Set working directory and create it with proper ownership
-RUN mkdir -p /app && chown appuser:appuser /app
-WORKDIR /app
+# Set working directory
+WORKDIR /data
 
-# Copy requirements first for better layer caching
-COPY requirements.txt .
+# Start n8n
+CMD ["n8n", "start"]
 
-# Install Python dependencies as root (to avoid pip warning in production)
-RUN python -m pip install --no-cache-dir --upgrade pip && \
-    python -m pip install --no-cache-dir -r requirements.txt
-
-# Switch to non-root user before copying files
-USER appuser
-
-# Copy application code as the appuser
-COPY --chown=appuser:appuser . .
-
-# Create necessary directories as the appuser
-RUN mkdir -p database static workflows
-
-# Expose port 7860 (Hugging Face Spaces standard)
-EXPOSE 7860
-
-# Health check using curl
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:7860/health || exit 1
-
-# Start the application
-CMD ["python", "app.py"]

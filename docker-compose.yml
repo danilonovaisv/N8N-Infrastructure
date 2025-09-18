@@ -1,59 +1,42 @@
+version: "3.9"
 services:
   n8n:
-    # UPDATED: Use a recent, stable version of n8n
-    image: n8nio/n8n:1.108.0
-    container_name: N8N-Infrastructure
+    image: n8nio/n8n:1.104.2
     restart: unless-stopped
-    env_file:
-      - ./config/.env
     ports:
-      # The host port (left) can be changed; container port remains n8n's default (5678)
-      - "${N8N_PORT_LOCAL:-5678}:5678"
+      - "5678:5678"
     environment:
-      # --- Database Settings ---
-      # All sensitive DB credentials (HOST, DB, USER, PASS) should be in .env
-      - DB_POSTGRESDB_SSL=${DB_POSTGRESDB_SSL:-true}
-      # Align with Supabase pooler default (6543) unless overridden
-      - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT:-6543}
-      - DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=${DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED:-false}
+      # ===== Base URL / Webhooks =====
+      N8N_HOST: danilonovais-n8n-dan.hf.space
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      WEBHOOK_URL: https://danilonovais-n8n-dan.hf.space/
 
-      # --- Community Nodes ---
-      # FIXED: Correctly formatted as a comma-separated string
-      - N8N_ENABLE_COMMUNITY_NODES=${N8N_ENABLE_COMMUNITY_NODES:-true}
-      - N8N_COMMUNITY_PACKAGES=${N8N_COMMUNITY_PACKAGES:-n8n-nodes-langchain,n8n-nodes-google,n8n-nodes-vertexai}
+      # ===== Pastas e persistência =====
+      N8N_USER_FOLDER: /data/.n8n
 
-      # --- n8n Core Settings ---
-      # These are read from the .env file, with sane defaults for local dev.
-      - N8N_HOST=${N8N_HOST:-localhost}
-      - N8N_PORT=${N8N_PORT:-5678}
-      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-      # FIXED: Webhook URL now dynamically points to the local instance
-      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:${N8N_PORT_LOCAL:-5678}}
+      # ===== Segurança / Criptografia =====
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
+      N8N_API_KEY: ${N8N_API_KEY}
+      CSRF_SECRET: ${CSRF_SECRET}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      N8N_LOG_LEVEL: ${N8N_LOG_LEVEL:-info}
+      N8N_METRICS: ${N8N_METRICS:-true}
+
+      # ===== Banco (Supabase) =====
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_CONNECTION_STRING: ${DB_POSTGRESDB_CONNECTION_STRING}
+      DB_POSTGRESDB_SSL: "true"
+      # Se tiver erro de CA, ative a linha abaixo (menos seguro):
+      # DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED: "false"
+      # Alternativa segura: usar CA (baixe o certificado da Supabase e monte em /data/.n8n/ca.pem)
+      # DB_POSTGRESDB_SSL_CA: /data/.n8n/ca.pem
+
+      # ===== Integrações (ex.: caminhos de credenciais) =====
+      GOOGLE_CREDENTIALS_PATH: /data/.n8n/credentials/google-service-account.json
 
     volumes:
-      # Persists n8n data between restarts
-      - n8n_data:/home/node/.n8n
-      # Mount local directories for workflow and knowledge base development
-      - ./workflows:/data/workflows:rw
-      - ./knowledge:/data/knowledge:rw
-    healthcheck:
-      # Healthcheck now correctly points to the internal n8n port
-      test: ["CMD", "curl", "-fsS", "http://localhost:5678/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  # Optional vector DB for local development
-  qdrant:
-    # UPDATED: Use a recent, stable version of Qdrant
-    image: qdrant/qdrant:v1.10.1
-    container_name: qdrant
-    restart: unless-stopped
-    ports:
-      - "6543:6543"
-    volumes:
-      - qdrant_data:/qdrant/storage
-
+      - n8n_data:/data
 volumes:
   n8n_data:
-  qdrant_data:

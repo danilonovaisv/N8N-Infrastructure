@@ -103,14 +103,11 @@ def setup_huggingface_environment():
         except (PermissionError, OSError) as e:
             logger.warning(f"⚠️  Could not create {name} directory ({e}) - using fallback")
             if name == "database":
-                # Force temp database location
                 os.environ["WORKFLOW_DB_PATH"] = "/tmp/workflows.db"
                 logger.info(f"🔁 Database will use temp location: /tmp/workflows.db")
             elif name == "static":
-                # Static files will be served from memory
                 logger.info("📝 Static files will be served from memory")
             elif name == "workflows":
-                # Workflows directory fallback
                 logger.info("📝 Workflows will be loaded from embedded sources if available")
 
     os.environ.setdefault("WORKFLOW_SOURCE_DIR", str(directory_paths["workflows"]))
@@ -120,34 +117,26 @@ def setup_huggingface_environment():
     try:
         from workflow_db import WorkflowDatabase
         
-        # Determine database configuration
         db_type = os.environ.get("DB_TYPE", "sqlite")
         
         if db_type == "postgresdb":
-            # Note: Current WorkflowDatabase only supports SQLite
-            # PostgreSQL support would need to be implemented in WorkflowDatabase class
             logger.warning("⚠️  PostgreSQL requested but WorkflowDatabase only supports SQLite")
             logger.info("🔁 Falling back to SQLite (PostgreSQL support not implemented)...")
             db_type = "sqlite"
             os.environ["DB_TYPE"] = "sqlite"
         
         if db_type == "sqlite":
-            # Try local database first, fall back to temp if read-only filesystem
             try:
                 db_path = BASE_DIR / "database" / "workflows.db"
                 logger.info(f"📁 Attempting to use SQLite database: {db_path}")
                 
-                # Test if we can write to the database directory
                 test_file = db_path.parent / "test_write.tmp"
                 test_file.touch()
                 test_file.unlink()
                 
-                # If we get here, we can write to the directory
-                if not Path(db_path).exists() or Path(db_path).stat().st_size == 0:
+                db = WorkflowDatabase(str(db_path))
+                if not db_path.exists() or db_path.stat().st_size == 0:
                     logger.info("📚 Initializing SQLite workflows database...")
-                    db = WorkflowDatabase(str(db_path))
-                else:
-                    db = WorkflowDatabase(str(db_path))
                     
             except (PermissionError, OSError) as e:
                 logger.warning(f"⚠️  Cannot write to local database directory: {e}")
@@ -157,12 +146,10 @@ def setup_huggingface_environment():
                 logger.info(f"📁 Using temporary SQLite database: {temp_db_path}")
                 db = WorkflowDatabase(temp_db_path)
         
-        # Database will be checked and indexed in the background by the API server
         logger.info("✅ Database setup complete. Indexing will be handled by the API server.")
             
     except Exception as e:
         logger.error(f"❌ Database setup error: {e}")
-        # Final fallback - try temp database
         try:
             logger.info("🔁 Attempting final fallback to temporary database...")
             temp_db_path = "/tmp/fallback_workflows.db"
@@ -174,12 +161,8 @@ def setup_huggingface_environment():
         except Exception as fallback_error:
             logger.warning(f"⚠️  All database options failed: {fallback_error}")
             logger.info("📝 API will start without pre-initialized database")
-            logger.info("🔄 Database initialization will be attempted on first API request")
-            # Create a minimal environment setup so the API can still start
             os.environ["DB_TYPE"] = "sqlite"
             os.environ["WORKFLOW_DB_PATH"] = "/tmp/delayed_init_workflows.db"
-
-# --- INÍCIO DA SEÇÃO CORRIGIDA ---
 
 def create_static_files():
     """Create basic static files for the web interface."""
@@ -210,7 +193,6 @@ def create_static_files():
         <h1>🚀 N8N Workflows Documentation API</h1>
         <p>Advanced search engine for N8N workflow automation</p>
     </div>
-    
     <div class="description">
         <h2>Available Endpoints:</h2>
         <a href="/api/workflows" class="api-link">📊 Browse Workflows</a>
@@ -218,7 +200,6 @@ def create_static_files():
         <a href="/docs" class="api-link">📚 API Documentation</a>
         <a href="/health" class="api-link">❤️ Health Check</a>
     </div>
-    
     <div class="description">
         <h3>Features:</h3>
         <ul>
@@ -229,7 +210,6 @@ def create_static_files():
             <li>🤖 AI-powered workflow analysis</li>
         </ul>
     </div>
-    
     <div style="text-align: center; margin-top: 40px; color: #666;">
         <p>Powered by <strong>FastAPI</strong> • Hosted on <strong>Hugging Face Spaces</strong></p>
     </div>
@@ -243,40 +223,31 @@ def create_static_files():
     except Exception as e:
         logger.warning(f"⚠️  Static file setup failed: {e} - will serve basic content from API")
 
-# --- FIM DA SEÇÃO CORRIGIDA ---
-
-
 async def startup_tasks():
     """Perform startup tasks asynchronously."""
     try:
         setup_huggingface_environment()
-        # Adicionamos a chamada para criar os arquivos estáticos aqui
         create_static_files()
         logger.info("🎉 Hugging Face Spaces setup completed successfully!")
     except Exception as e:
         logger.error(f"❌ Startup error: {e}")
-        # Don't fail completely, let the app start anyway
 
 def main():
     """Main entry point for Hugging Face Spaces."""
     logger.info("🚀 Starting N8N Workflow Documentation API on Hugging Face Spaces...")
     
-    # Run startup tasks
     asyncio.run(startup_tasks())
     
-    # Import and start the FastAPI app
     try:
         from api_server import app
         import uvicorn
         
-        # Get configuration from environment
         host = os.getenv("HOST", "0.0.0.0")
         port = int(os.getenv("PORT", "7860"))
         
         logger.info(f"🌐 Server starting on {host}:{port}")
         logger.info("📊 API Documentation will be available at /docs")
         
-        # Start the server
         uvicorn.run(
             app,
             host=host,
@@ -292,18 +263,15 @@ def main():
         logger.error(f"❌ Failed to start server: {e}")
         sys.exit(1)
 
-# For Hugging Face Spaces compatibility
 if __name__ == "__main__":
     main()
 
 # Also expose the app directly for gunicorn/uvicorn
 try:
-    # Ensure environment is set up
     asyncio.run(startup_tasks())
     from api_server import app
 except Exception as e:
     logger.warning(f"⚠️  Could not set up environment during import: {e}")
-    # Create a minimal fallback app
     from fastapi import FastAPI
     app = FastAPI(title="N8N Workflows API - Setup Required")
     

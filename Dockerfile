@@ -12,6 +12,10 @@ WORKDIR /data
 COPY app.sh /app.sh
 RUN chmod +x /app.sh
 
+# --- AJUSTE AQUI ---
+# Garante que o usuário 'node' tenha permissão para escrever no diretório /data
+RUN chown -R node:node /data
+
 # Rode como usuário node
 USER node
 

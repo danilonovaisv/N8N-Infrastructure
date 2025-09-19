@@ -40,6 +40,17 @@ echo "  Log level: ${N8N_LOG_LEVEL:-info}"
 # Wait a moment for any database to be ready
 sleep 2
 
+# Verify n8n is available
+echo "Checking n8n installation..."
+if ! command -v n8n &> /dev/null; then
+    echo "ERROR: n8n command not found in PATH: $PATH"
+    echo "Available commands:"
+    ls -la /usr/local/bin/ | grep n8n || echo "No n8n found in /usr/local/bin/"
+    exit 1
+fi
+
+echo "n8n version: $(n8n --version)"
+
 # Start n8n
 echo "Starting n8n server..."
 exec n8n start

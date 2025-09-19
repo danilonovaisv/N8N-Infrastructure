@@ -30,7 +30,7 @@ spec:
                   imagePullPolicy: IfNotPresent
                   env:
                     - name: ALLOWED_ORIGINS
-                      value: "https://your-n8n-app.claw.cloud"
+                      value: "https://n8n-kaaldqdb.us-west-1.clawcloudrun.com"
                     - name: ANTHROPIC_API_KEY
                       value: ""
                     - name: BACKUP_ENCRYPTION_PASSWORD
@@ -94,13 +94,15 @@ spec:
                     - name: N8N_ENCRYPTION_KEY
                       value: "sg}Imfql]L467m)@-MwXN2IVE&I-(s1y>$Ft?Rp>#<Sv8&sOt%f!ecLIF97bs?SD"
                     - name: N8N_HOST
-                      value: "your-n8n-app.claw.cloud"
+                      value: "n8n-kaaldqdb.us-west-1.clawcloudrun.com"
                     - name: N8N_LOG_LEVEL
                       value: "info"
                     - name: N8N_METRICS
                       value: "true"
+                    - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+                      value: "true"
                     - name: N8N_PORT
-                      value: "6543"
+                      value: "5678"
                     - name: N8N_PROTOCOL
                       value: "http"
                     - name: N8N_PUBLIC_API_DISABLED
@@ -111,6 +113,8 @@ spec:
                       value: ""
                     - name: QUEUE_BULL_REDIS_DISABLED
                       value: "true"
+                    - name: QUEUE_HEALTH_CHECK_ACTIVE
+                      value: "true"
                     - name: RATE_LIMIT_MAX
                       value: "100"
                     - name: RATE_LIMIT_WINDOW
@@ -118,7 +122,7 @@ spec:
                     - name: SENTRY_DSN
                       value: ""
                     - name: WEBHOOK_URL
-                      value: "https://your-n8n-app.claw.cloud"
+                      value: "https://n8n-kaaldqdb.us-west-1.clawcloudrun.com/"
                   livenessProbe:
                     exec:
                         command: ['curl -fsS http://localhost:6543/healthz']

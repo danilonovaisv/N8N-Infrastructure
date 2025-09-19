@@ -1,55 +1,58 @@
 version: "3.9"
 services:
   n8n:
-    # A imagem será construída a partir do seu Dockerfile ao usar 'docker-compose build'
-    # ou quando o ClawCloud fizer o deploy a partir do seu repositório.
-    build: .
-    image: danilonovaisv/n8n-custom:1.111.0
+    image: ghcr.io/SEU_USER/n8n-custom:latest
     restart: unless-stopped
     ports:
       - "5678:5678"
     environment:
-      # --- As variáveis abaixo devem ser definidas no ambiente de deploy (ex: ClawCloud UI) ---
-      # --- ou em um arquivo .env para desenvolvimento local ---
-
-      # ===== Base URL / Webhooks (claw.cloud) =====
-      N8N_HOST: n8n-mjgxheeo.us-west-1.clawcloudrun.com # Ex: your-n8n-app.claw.cloud
+      N8N_HOST: n8n-mjgxheeo.us-west-1.clawcloudrun.com
       N8N_PORT: 5678
       N8N_PROTOCOL: https
-      WEBHOOK_URL: https://n8n-mjgxheeo.us-west-1.clawcloudrun.com # Ex: https://your-n8n-app.claw.cloud/
-
-      # ===== Pastas e persistência =====
-      N8N_USER_FOLDER: /data/.n8n
-
-      # ===== Segurança / Criptografia =====
+      WEBHOOK_URL: https://n8n-mjgxheeo.us-west-1.clawcloudrun.com
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
       N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
       N8N_API_KEY: ${N8N_API_KEY}
-      CSRF_SECRET: ${CSRF_SECRET}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
-      N8N_LOG_LEVEL: ${N8N_LOG_LEVEL:-info}
-      N8N_METRICS: ${N8N_METRICS:-true}
-
-      # ===== Database Configuration (PostgreSQL on claw.cloud) =====
-      DB_TYPE: ${DB_TYPE}
+      DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
-      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}
+      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT:-5432}
       DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
       DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
       DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
-      DB_POSTGRESDB_CONNECTION: ${DB_POSTGRESDB_CONNECTION}
-
-      # ===== Integrações =====
-      GOOGLE_CREDENTIALS_PATH: /data/.n8n/credentials/google-service-account.json
-
+      N8N_USER_FOLDER: /data/.n8n
     volumes:
       - n8n_data:/data
-
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5678/rest/health"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5678/rest/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
 
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    depends_on:
+      - n8n
+    environment:
+      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
+      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT:-5432}
+      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
+      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
+      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
+      N8N_API_KEY: ${N8N_API_KEY:-}
+    volumes:
+      - ./backup/backup.sh:/backup/backup.sh:ro
+      - ./backup/crontab:/etc/crontabs/root:ro
+      - n8n_backups:/backups
+    command: [ "sh", "-c", "chmod +x /backup/backup.sh && crond -f -l 8" ]
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup --include-restarting n8n
+
 volumes:
   n8n_data:
+  n8n_backups:

@@ -1,26 +1,11 @@
-FROM node:24-alpine
+ARG N8N_BASE_TAG=1.111.0
+FROM n8nio/n8n:${N8N_BASE_TAG}
 
-# Dependências mínimas do n8n
-RUN apk add --no-cache bash curl openssl chromium postgresql-client git \
-    && npm i -g n8n@1.111.0
+USER root
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates tzdata \
+ && rm -rf /var/lib/apt/lists/*
 
-# Environment variables
-ENV N8N_USER_FOLDER=/data/.n8n
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
-ENV PATH=/usr/local/bin:$PATH
-
-WORKDIR /data
-COPY app.sh /app.sh
-RUN chmod +x /app.sh
-
-# --- AJUSTE AQUI ---
-# Garante que o usuário 'node' tenha permissão para escrever no diretório /data
-RUN chown -R node:node /data
-
-# Rode como usuário node
+RUN mkdir -p /data/.n8n && chown -R node:node /data
 USER node
-
-EXPOSE 5678
-CMD ["/bin/bash", "/app.sh"]
+WORKDIR /data

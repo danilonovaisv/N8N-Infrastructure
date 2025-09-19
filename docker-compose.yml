@@ -12,11 +12,11 @@ services:
       # --- As variáveis abaixo devem ser definidas no ambiente de deploy (ex: ClawCloud UI) ---
       # --- ou em um arquivo .env para desenvolvimento local ---
 
-      # ===== Base URL / Webhooks (Exemplo para ClawCloud) =====
-      N8N_HOST: ${N8N_HOST} # Ex: n8n-dan-abcd.us-west-1.run.claw.cloud
+      # ===== Base URL / Webhooks (claw.cloud) =====
+      N8N_HOST: ${N8N_HOST} # Ex: your-n8n-app.claw.cloud
       N8N_PORT: 5678
       N8N_PROTOCOL: https
-      WEBHOOK_URL: ${WEBHOOK_URL} # Ex: https://n8n-dan-abcd.us-west-1.run.claw.cloud/
+      WEBHOOK_URL: ${WEBHOOK_URL} # Ex: https://your-n8n-app.claw.cloud/
 
       # ===== Pastas e persistência =====
       N8N_USER_FOLDER: /data/.n8n
@@ -30,12 +30,14 @@ services:
       N8N_LOG_LEVEL: ${N8N_LOG_LEVEL:-info}
       N8N_METRICS: ${N8N_METRICS:-true}
 
-      # ===== Banco de Dados =====
-      DB_TYPE: postgresdb
-      DB_POSTGRESDB_CONNECTION_STRING: ${DB_POSTGRESDB_CONNECTION_STRING}
-      DB_POSTGRESDB_SSL: "true"
-      DB_POSTGRESDB_SSL_CA: /data/.n8n/ca.pem
-      # DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED: "false" # Use apenas se necessário
+      # ===== Database Configuration (PostgreSQL on claw.cloud) =====
+      DB_TYPE: ${DB_TYPE}
+      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
+      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}
+      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
+      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
+      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
+      DB_POSTGRESDB_CONNECTION: ${DB_POSTGRESDB_CONNECTION}
 
       # ===== Integrações =====
       GOOGLE_CREDENTIALS_PATH: /data/.n8n/credentials/google-service-account.json

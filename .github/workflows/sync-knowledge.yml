@@ -1,4 +1,4 @@
-name: Sync Knowledge Base to Supabase
+name: Sync Knowledge Base
 
 on:
   schedule:
@@ -19,14 +19,12 @@ jobs:
 
       - name: Install runtime deps for sync script
         run: |
-          npm i --no-save @supabase/supabase-js openai
+          npm i --no-save openai
 
       - name: Run sync script
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          CLAW_TOKEN: ${{ secrets.CLAW_TOKEN }}
           KNOWLEDGE_REPO_URL: ${{ secrets.KNOWLEDGE_REPO_URL }}
           KNOWLEDGE_DIRS: ${{ secrets.KNOWLEDGE_DIRS }}
         run: |

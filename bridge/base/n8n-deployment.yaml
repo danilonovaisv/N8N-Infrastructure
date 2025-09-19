@@ -30,7 +30,7 @@ spec:
                   imagePullPolicy: IfNotPresent
                   env:
                     - name: ALLOWED_ORIGINS
-                      value: "https://your-n8n-host.hf.space"
+                      value: "https://your-n8n-app.claw.cloud"
                     - name: ANTHROPIC_API_KEY
                       value: ""
                     - name: BACKUP_ENCRYPTION_PASSWORD
@@ -44,18 +44,16 @@ spec:
                     - name: CSRF_SECRET
                       value: ""
                     - name: DB_POSTGRESDB_DATABASE
-                      value: "postgres"
+                      value: "pn8n-database-postgresql-0"
                     - name: DB_POSTGRESDB_HOST
-                      value: ""
+                      value: "n8n-database-postgresql.ns-t3rlqt6e.svc"
                     - name: DB_POSTGRESDB_PASSWORD
-                      value: ""
+                      value: "rwdh7jbk"
                     - name: DB_POSTGRESDB_PORT
-                      value: "6543"
+                      value: "5432"
                     - name: DB_POSTGRESDB_SCHEMA
                       value: "public"
                     - name: DB_POSTGRESDB_SSL
-                      value: "true"
-                    - name: DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED
                       value: "false"
                     - name: DB_POSTGRESDB_USER
                       value: "postgres"
@@ -79,10 +77,8 @@ spec:
                       value: "/home/node/.n8n/credentials/google-service-account.json"
                     - name: GOOGLE_PROJECT_ID
                       value: ""
-                    - name: HF_SPACE_NAME
-                      value: "your-username/your-space-name"
-                    - name: HF_TOKEN
-                      value: ""
+                    - name: CLAW_TOKEN
+                      value: "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"
                     - name: KB_BRANCH_N8N
                       value: "main"
                     - name: KB_PATH_N8N
@@ -98,7 +94,7 @@ spec:
                     - name: N8N_ENCRYPTION_KEY
                       value: ""
                     - name: N8N_HOST
-                      value: "localhost"
+                      value: "your-n8n-app.claw.cloud"
                     - name: N8N_LOG_LEVEL
                       value: "info"
                     - name: N8N_METRICS
@@ -122,7 +118,7 @@ spec:
                     - name: SENTRY_DSN
                       value: ""
                     - name: WEBHOOK_URL
-                      value: "https://danilonovais-n8n-dan.hf.space"
+                      value: "https://your-n8n-app.claw.cloud"
                   livenessProbe:
                     exec:
                         command: ['curl -fsS http://localhost:6543/healthz']

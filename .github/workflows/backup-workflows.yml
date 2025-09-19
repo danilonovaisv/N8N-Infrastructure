@@ -23,11 +23,11 @@ jobs:
           N8N_BASE_URL: ${{ secrets.N8N_BASE_URL }}
           N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
           # DB (optional) for pg_dump
-          DB_POSTGRESDB_HOST: ${{ secrets.DB_HOST }}
-          DB_POSTGRESDB_PORT: ${{ secrets.DB_PORT }}
-          DB_POSTGRESDB_DATABASE: ${{ secrets.DB_NAME }}
-          DB_POSTGRESDB_USER: ${{ secrets.DB_USER }}
-          DB_POSTGRESDB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_POSTGRESDB_HOST: ${{ secrets.DB_POSTGRESDB_HOST }}
+          DB_POSTGRESDB_PORT: ${{ secrets.DB_POSTGRESDB_PORT }}
+          DB_POSTGRESDB_DATABASE: ${{ secrets.DB_POSTGRESDB_DATABASE }}
+          DB_POSTGRESDB_USER: ${{ secrets.DB_POSTGRESDB_USER }}
+          DB_POSTGRESDB_PASSWORD: ${{ secrets.DB_POSTGRESDB_PASSWORD }}
         run: |
           bash scripts/backup.sh
 

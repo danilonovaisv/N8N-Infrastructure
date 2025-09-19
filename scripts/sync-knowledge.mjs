@@ -1,6 +1,7 @@
-// Node 20 script: sync knowledge repos into Supabase with embeddings
-// Requires: OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, KNOWLEDGE_REPO_URL, KNOWLEDGE_DIRS
-import { createClient } from '@supabase/supabase-js';
+// Node 20 script: sync knowledge repos into PostgreSQL with embeddings
+// Requires: OPENAI_API_KEY, DB_POSTGRESDB_CONNECTION, KNOWLEDGE_REPO_URL, KNOWLEDGE_DIRS
+import pkg from 'pg';
+const { Client } = pkg;
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -10,20 +11,19 @@ import OpenAI from 'openai';
 
 const {
   OPENAI_API_KEY,
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
+  DB_POSTGRESDB_CONNECTION,
+  CLAW_TOKEN,
   KNOWLEDGE_REPO_URL,
   KNOWLEDGE_DIRS = 'projects/n8n,projects/videos-e-animacoes,projects/midjorney-prompt',
-  GH_TOKEN,
 } = process.env;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !KNOWLEDGE_REPO_URL) {
-  console.error('Missing env SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY or KNOWLEDGE_REPO_URL');
+if (!DB_POSTGRESDB_CONNECTION || !KNOWLEDGE_REPO_URL) {
+  console.error('Missing env DB_POSTGRESDB_CONNECTION or KNOWLEDGE_REPO_URL');
   process.exit(1);
 }
 
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const pgClient = new Client({ connectionString: DB_POSTGRESDB_CONNECTION });
 
 const workdir = path.resolve('knowledge');
 if (!fs.existsSync(workdir)) fs.mkdirSync(workdir, { recursive: true });
@@ -41,7 +41,7 @@ function runCommand(command, args, options = {}) {
 const repoDir = path.join(workdir, 'CHATGPT-knowledge-base');
 if (!fs.existsSync(repoDir)) {
   console.log('Cloning KB repo...');
-  const repoUrl = GH_TOKEN ? KNOWLEDGE_REPO_URL.replace('https://', `https://x-access-token:${GH_TOKEN}@`) : KNOWLEDGE_REPO_URL;
+  const repoUrl = CLAW_TOKEN ? KNOWLEDGE_REPO_URL.replace('https://', `https://x-access-token:${CLAW_TOKEN}@`) : KNOWLEDGE_REPO_URL;
   runCommand('git', ['clone', '--depth', '1', repoUrl, repoDir]);
 } else {
   console.log('Pulling KB repo...');
@@ -57,13 +57,17 @@ async function upsertDoc(pth, content) {
   const hash = sha256(content);
 
   // Upsert document
-  const { data: doc, error: docErr } = await supabase
-    .from('documents')
-    .upsert({ path: pth, title, content, hash, updated_at: new Date() }, { onConflict: 'path' })
-    .select('id, hash')
-    .single();
-
-  if (docErr) throw new Error(`Supabase doc upsert error: ${docErr.message}`);
+  const docQuery = `
+    INSERT INTO documents (path, title, content, hash, updated_at) 
+    VALUES ($1, $2, $3, $4, NOW())
+    ON CONFLICT (path) 
+    DO UPDATE SET title = $2, content = $3, hash = $4, updated_at = NOW()
+    RETURNING id, hash
+  `;
+  
+  const docResult = await pgClient.query(docQuery, [pth, title, content, hash]);
+  const doc = docResult.rows[0];
+  
   if (!doc) throw new Error('Upsert did not return a document.');
 
   // If hash is the same, skip embedding
@@ -79,18 +83,25 @@ async function upsertDoc(pth, content) {
       model: 'text-embedding-3-large',
       input
     });
-    const vector = emb.data[0].embedding;
+    const vector = JSON.stringify(emb.data[0].embedding);
 
-    const { error: embErr } = await supabase
-      .from('embeddings')
-      .upsert({ doc_id: doc.id, embedding: vector, model: 'text-embedding-3-large' }, { onConflict: 'doc_id' });
-    if (embErr) throw new Error(`Supabase embedding upsert error: ${embErr.message}`);
+    const embQuery = `
+      INSERT INTO embeddings (doc_id, embedding, model) 
+      VALUES ($1, $2, $3)
+      ON CONFLICT (doc_id) 
+      DO UPDATE SET embedding = $2, model = $3
+    `;
+    
+    await pgClient.query(embQuery, [doc.id, vector, 'text-embedding-3-large']);
   } else {
     console.warn('OPENAI_API_KEY not set, skipping embeddings for', pth);
   }
 }
 
 async function main() {
+  await pgClient.connect();
+  console.log('Connected to PostgreSQL database');
+  
   let successCount = 0;
   let errorCount = 0;
 
@@ -119,6 +130,10 @@ async function main() {
     }
   }
   console.log(`\nSync complete. ${successCount} processed, ${errorCount} errors.`);
+  
+  await pgClient.end();
+  console.log('Database connection closed');
+  
   if (errorCount > 0) {
       process.exit(1);
   }

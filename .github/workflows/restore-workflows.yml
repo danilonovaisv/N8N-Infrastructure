@@ -26,16 +26,16 @@ jobs:
 
       - name: Optional DB restore from backup
         env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_POSTGRESDB_HOST: ${{ secrets.DB_POSTGRESDB_HOST }}
+          DB_POSTGRESDB_PORT: ${{ secrets.DB_POSTGRESDB_PORT }}
+          DB_POSTGRESDB_DATABASE: ${{ secrets.DB_POSTGRESDB_DATABASE }}
+          DB_POSTGRESDB_USER: ${{ secrets.DB_POSTGRESDB_USER }}
+          DB_POSTGRESDB_PASSWORD: ${{ secrets.DB_POSTGRESDB_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -n "${DB_HOST:-}" ] && [ -n "${DB_NAME:-}" ] && [ -n "${DB_USER:-}" ] && [ -n "${DB_PASSWORD:-}" ]; then
+          if [ -n "${DB_POSTGRESDB_HOST:-}" ] && [ -n "${DB_POSTGRESDB_DATABASE:-}" ] && [ -n "${DB_POSTGRESDB_USER:-}" ] && [ -n "${DB_POSTGRESDB_PASSWORD:-}" ]; then
             echo "Attempting DB restore..."
-            export PGPASSWORD="$DB_PASSWORD"
+            export PGPASSWORD="$DB_POSTGRESDB_PASSWORD"
             # Prefer consolidated archive
             archive=$(ls -1 restore_artifacts/backups/n8n-backup-*.tar.gz 2>/dev/null | sort | tail -n1 || true)
             if [ -n "$archive" ]; then
@@ -60,10 +60,10 @@ jobs:
               fi
             fi
             echo "Restoring SQL file: $sql_file"
-            psql --host "$DB_HOST" --port "${DB_PORT:-6543}" --username "$DB_USER" --dbname "$DB_NAME" --set ON_ERROR_STOP=on --file "$sql_file"
+            psql --host "$DB_POSTGRESDB_HOST" --port "${DB_POSTGRESDB_PORT:-5432}" --username "$DB_POSTGRESDB_USER" --dbname "$DB_POSTGRESDB_DATABASE" --set ON_ERROR_STOP=on --file "$sql_file"
             echo "DB restore complete"
           else
-            echo "DB_* secrets not set; skipping DB restore"
+            echo "DB_POSTGRESDB_* secrets not set; skipping DB restore"
           fi
 
       - name: Restore workflows from latest JSON

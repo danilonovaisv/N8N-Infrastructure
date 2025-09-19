@@ -92,7 +92,7 @@ spec:
                     - name: N8N_ENABLE_COMMUNITY_NODES
                       value: "true"
                     - name: N8N_ENCRYPTION_KEY
-                      value: ""
+                      value: "sg}Imfql]L467m)@-MwXN2IVE&I-(s1y>$Ft?Rp>#<Sv8&sOt%f!ecLIF97bs?SD"
                     - name: N8N_HOST
                       value: "your-n8n-app.claw.cloud"
                     - name: N8N_LOG_LEVEL

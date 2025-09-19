@@ -2,7 +2,7 @@ FROM node:24-alpine
 
 # Dependências mínimas do n8n
 RUN apk add --no-cache bash curl openssl chromium postgresql-client git \
-    && npm i -g n8n@1.108.0
+    && npm i -g n8n@1.111.0
 
 # Environment variables
 ENV N8N_USER_FOLDER=/data/.n8n

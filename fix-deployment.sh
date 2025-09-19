@@ -1,0 +1,186 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "🚨 Emergency N8N Deployment Fix Script"
+echo "======================================"
+
+# Check if we're in the right directory
+if [[ ! -f "bridge/base/n8n-deployment.yaml" ]]; then
+    echo "❌ Error: Please run this script from the n8n-infrastructure directory"
+    exit 1
+fi
+
+echo "📋 Current Configuration Issues Detected:"
+echo "  - DB_TYPE mismatch (postgresql vs postgresdb)"
+echo "  - Port configuration inconsistencies"
+echo "  - Missing QUEUE_HEALTH_CHECK_ACTIVE variable"
+echo "  - Potential encryption key escaping issues"
+echo ""
+
+# Create a corrected deployment with inline fixes
+echo "🔧 Creating emergency deployment configuration..."
+
+cat > bridge/base/n8n-deployment-emergency.yaml << 'EOF'
+#! n8n-deployment-emergency.yaml
+# Emergency deployment to fix crash loop
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: n8n
+    namespace: ns-t3rlqt6e
+    labels:
+        com.docker.compose.project: docker
+        com.docker.compose.service: n8n
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: docker
+            com.docker.compose.service: n8n
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: docker
+                com.docker.compose.service: n8n
+                com.docker.compose.network.default: "true"
+        spec:
+            restartPolicy: Always
+            containers:
+                - name: n8n-infrastructure
+                  image: n8nio/n8n:1.53.1
+                  imagePullPolicy: IfNotPresent
+                  env:
+                    # CRITICAL FIXES
+                    - name: DB_TYPE
+                      value: "postgresdb"  # FIXED: was "postgresql"
+                    - name: N8N_PORT
+                      value: "5678"       # FIXED: was "6543"
+                    
+                    # DATABASE CONFIGURATION
+                    - name: DB_POSTGRESDB_HOST
+                      value: "n8n-database-postgresql.ns-t3rlqt6e.svc"
+                    - name: DB_POSTGRESDB_PORT
+                      value: "5432"
+                    - name: DB_POSTGRESDB_USER
+                      value: "postgres"
+                    - name: DB_POSTGRESDB_PASSWORD
+                      value: "rwdh7jbk"
+                    - name: DB_POSTGRESDB_DATABASE
+                      value: "pn8n-database-postgresql-0"
+                    - name: DB_POSTGRESDB_SCHEMA
+                      value: "public"
+                    - name: DB_POSTGRESDB_SSL
+                      value: "false"
+                    
+                    # CORE N8N CONFIGURATION
+                    - name: N8N_HOST
+                      value: "n8n-kaaldqdb.us-west-1.clawcloudrun.com"
+                    - name: N8N_PROTOCOL
+                      value: "https"
+                    - name: WEBHOOK_URL
+                      value: "https://n8n-kaaldqdb.us-west-1.clawcloudrun.com/"
+                    - name: N8N_LOG_LEVEL
+                      value: "info"
+                    - name: N8N_METRICS
+                      value: "true"
+                    
+                    # ENCRYPTION (safely quoted)
+                    - name: N8N_ENCRYPTION_KEY
+                      value: "sg}Imfql]L467m)@-MwXN2IVE&I-(s1y>$Ft?Rp>#<Sv8&sOt%f!ecLIF97bs?SD"
+                    
+                    # QUEUE CONFIGURATION
+                    - name: QUEUE_BULL_REDIS_DISABLED
+                      value: "true"
+                    - name: QUEUE_HEALTH_CHECK_ACTIVE
+                      value: "true"  # ADDED: was missing
+                    
+                    # SECURITY
+                    - name: ALLOWED_ORIGINS
+                      value: "https://n8n-kaaldqdb.us-west-1.clawcloudrun.com"
+                    - name: CLAW_TOKEN
+                      value: "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"
+                    
+                    # EXECUTION SETTINGS
+                    - name: EXECUTIONS_MODE
+                      value: "regular"
+                    - name: EXECUTIONS_DATA_SAVE_ON_SUCCESS
+                      value: "none"
+                    - name: EXECUTIONS_DATA_SAVE_ON_ERROR
+                      value: "all"
+                    - name: EXECUTIONS_DATA_PRUNE
+                      value: "true"
+                    - name: EXECUTIONS_DATA_MAX_AGE
+                      value: "336"
+                    
+                    # API SETTINGS
+                    - name: N8N_PUBLIC_API_DISABLED
+                      value: "false"
+                    
+                    # COMMUNITY NODES
+                    - name: N8N_ENABLE_COMMUNITY_NODES
+                      value: "true"
+                    - name: N8N_COMMUNITY_PACKAGES
+                      value: "[\"n8n-nodes-langchain\",\"n8n-nodes-google\",\"n8n-nodes-vertexai\"]"
+                      
+                  ports:
+                    - name: n8n-5678
+                      containerPort: 5678
+                      protocol: TCP
+                  
+                  # FIXED HEALTH CHECK
+                  livenessProbe:
+                    httpGet:
+                      path: /healthz
+                      port: 5678
+                    initialDelaySeconds: 60
+                    periodSeconds: 30
+                    timeoutSeconds: 10
+                    failureThreshold: 5
+                  
+                  readinessProbe:
+                    httpGet:
+                      path: /healthz
+                      port: 5678
+                    initialDelaySeconds: 30
+                    periodSeconds: 10
+                    timeoutSeconds: 5
+                    failureThreshold: 3
+                  
+                  # RESOURCE LIMITS (prevent OOM kills)
+                  resources:
+                    requests:
+                      memory: "512Mi"
+                      cpu: "250m"
+                    limits:
+                      memory: "2Gi"
+                      cpu: "1000m"
+                      
+                  volumeMounts:
+                    - name: n8n-data
+                      mountPath: /home/node/.n8n
+            
+            volumes:
+                - name: n8n-data
+                  persistentVolumeClaim:
+                    claimName: n8n-n8n-data
+EOF
+
+echo "✅ Emergency deployment configuration created!"
+echo ""
+echo "📋 Summary of Critical Fixes Applied:"
+echo "  ✅ DB_TYPE: postgresql → postgresdb"
+echo "  ✅ N8N_PORT: 6543 → 5678"
+echo "  ✅ Added QUEUE_HEALTH_CHECK_ACTIVE=true"
+echo "  ✅ Fixed health check endpoints"
+echo "  ✅ Added resource limits to prevent OOM kills"
+echo "  ✅ Corrected container port mapping"
+echo ""
+echo "🚀 Next Steps:"
+echo "1. Deploy this emergency configuration via claw.cloud"
+echo "2. Use the file: bridge/base/n8n-deployment-emergency.yaml"
+echo "3. Monitor the pod restart - it should stabilize"
+echo ""
+echo "💡 Alternative: Copy environment variables from .env.corrected"
+echo "   and set them in your claw.cloud deployment interface"

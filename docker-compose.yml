@@ -4,7 +4,7 @@ services:
     # A imagem será construída a partir do seu Dockerfile ao usar 'docker-compose build'
     # ou quando o ClawCloud fizer o deploy a partir do seu repositório.
     build: .
-    image: danilonovaisv/n8n-custom:latest
+    image: danilonovaisv/n8n-custom:1.111.0
     restart: unless-stopped
     ports:
       - "5678:5678"
@@ -13,10 +13,10 @@ services:
       # --- ou em um arquivo .env para desenvolvimento local ---
 
       # ===== Base URL / Webhooks (claw.cloud) =====
-      N8N_HOST: ${N8N_HOST} # Ex: your-n8n-app.claw.cloud
+      N8N_HOST: n8n-mjgxheeo.us-west-1.clawcloudrun.com # Ex: your-n8n-app.claw.cloud
       N8N_PORT: 5678
       N8N_PROTOCOL: https
-      WEBHOOK_URL: ${WEBHOOK_URL} # Ex: https://your-n8n-app.claw.cloud/
+      WEBHOOK_URL: https://n8n-mjgxheeo.us-west-1.clawcloudrun.com # Ex: https://your-n8n-app.claw.cloud/
 
       # ===== Pastas e persistência =====
       N8N_USER_FOLDER: /data/.n8n

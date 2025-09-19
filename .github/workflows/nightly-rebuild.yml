@@ -1,10 +1,52 @@
-name: Nightly Rebuild
+name: Nightly Rebuild (no external actions)
 
 on:
   schedule:
-    - cron: "17 3 * * *" # 03:17 UTC diário
+    - cron: "17 3 * * *"
   workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: n8n-custom
+  REGISTRY_GHCR: ghcr.io/${{ github.repository_owner }}
 
 jobs:
   rebuild:
-    uses: ./.github/workflows/ci.yml
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch source via git
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git init .
+          git remote add origin https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git fetch --depth=1 origin main
+          git checkout FETCH_HEAD
+
+      - name: Compute tags
+        id: meta
+        run: |
+          VERSION="latest"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAG=${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_NAME }}:${VERSION}" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAG_LATEST=${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
+
+      - name: Docker login GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Ensure buildx
+        run: |
+          docker buildx create --name builder --use || docker buildx use builder
+          docker buildx inspect --bootstrap
+
+      - name: Build & push (GHCR)
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --push \
+            --tag "${{ steps.meta.outputs.IMAGE_TAG }}" \
+            --tag "${{ steps.meta.outputs.IMAGE_TAG_LATEST }}" \
+            .

@@ -19,7 +19,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq postgresql-client
 
       - name: Download latest backup artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: ${{ github.event.inputs.artifact-name }}
           path: restore_artifacts

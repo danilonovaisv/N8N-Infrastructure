@@ -1,50 +1,35 @@
-version: "3.9"
 services:
   n8n:
-    build:
-      context: .
-      args:
-        N8N_BASE_TAG: "latest"  # ajuste quando quiser atualizar a base
-    image: ghcr.io/SEU_USER/n8n-custom:latest  # ou outro registry que você usa
+    image: n8nio/n8n:latest
+    container_name: n8n
     restart: unless-stopped
+    env_file: .env
     ports:
-      - "5678:5678"  # para testes locais; em prod pode não expor
+      - "5678:5678"
     environment:
-      # ===== Base URL / Webhooks =====
-      N8N_HOST: n8n-mjgxheeo.us-west-1.clawcloudrun.com
-      N8N_PORT: 5678
-      N8N_PROTOCOL: https
-      WEBHOOK_URL: https://n8n-mjgxheeo.us-west-1.clawcloudrun.com
-
-      # ===== Segurança / Log =====
-      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
-      N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
-      N8N_API_KEY: ${N8N_API_KEY}
-      N8N_LOG_LEVEL: ${N8N_LOG_LEVEL:-info}
-      N8N_DIAGNOSTICS_ENABLED: "false"
-      N8N_HIRING_BANNER_ENABLED: "false"
-
-      # ===== Database (use EITHER connection string OR fields) =====
-      DB_TYPE: postgresdb
-      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
-      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT:-5432}
-      DB_POSTGRESDB_USER: ${DB_POSTGRESDB_USER}
-      DB_POSTGRESDB_PASSWORD: ${DB_POSTGRESDB_PASSWORD}
-      DB_POSTGRESDB_DATABASE: ${DB_POSTGRESDB_DATABASE}
-      # DB_POSTGRESDB_CONNECTION: ${DB_POSTGRESDB_CONNECTION}
-      # ^ se usar a linha acima, remova os 4 campos separados
-
-      # ===== Pastas =====
-      N8N_USER_FOLDER: /data/.n8n
-
+      # redundantes ao env_file, mas úteis pra ficar explícito:
+      - DB_TYPE=${DB_TYPE}
+      - DB_POSTGRESDB_HOST=${DB_POSTGRESDB_HOST}
+      - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT}
+      - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE}
+      - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER}
+      - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD}
+      - DB_POSTGRESDB_SCHEMA=${DB_POSTGRESDB_SCHEMA}
+      - DB_POSTGRESDB_CONNECTION_LIMIT=${DB_POSTGRESDB_CONNECTION_LIMIT}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - QUEUE_HEALTH_CHECK_ACTIVE=${QUEUE_HEALTH_CHECK_ACTIVE}
+      - TZ=${TZ}
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
     volumes:
-      - n8n_data:/data
-
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5678/rest/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
+      - n8n_data:/home/node/.n8n
+    # Em Apple Silicon, se necessário:
+    # platform: linux/arm64
 
 volumes:
   n8n_data:
